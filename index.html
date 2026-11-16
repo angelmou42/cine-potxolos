@@ -152,6 +152,22 @@ button{cursor:pointer}
 .st button:focus-visible{outline:2px solid var(--ink);outline-offset:-1px}
 .rv{margin-left:6px;font-family:var(--label);font-weight:800;font-size:18px;min-width:3ch;font-variant-numeric:tabular-nums}
 
+/* ---------- Aisles: Marvel / Juntos ---------- */
+.aisles{display:flex;gap:10px;margin:18px 0 0;flex-wrap:wrap}
+.aisle{min-height:48px;padding:0 20px;border:0;border-radius:3px;background:var(--paper-2);color:var(--ink);font-family:var(--sign);font-weight:400;font-size:17px;letter-spacing:.01em;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.35);display:inline-flex;align-items:center;gap:10px}
+@media (max-width:560px){.aisles{flex-wrap:nowrap;gap:8px}.aisle{flex:1 1 0;justify-content:center;padding:0 10px;font-size:14px;white-space:nowrap;min-width:0}}
+.aisle small{font-family:var(--label);font-weight:700;font-size:14px;color:var(--ink-2)}
+.aisle[aria-pressed="true"]{background:var(--yellow);transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.aisle:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+body.v-juntas .ucm-only{display:none!important}
+body:not(.v-juntas) .j-only{display:none!important}
+.spine.jt{--pc:var(--pink)}
+.j-hide{display:none!important}
+.spine.jt .band{font-size:12px}
+.front .noimg{position:absolute;inset:0;display:grid;place-content:center;padding:24px 56px 24px 24px;text-align:center;font-family:var(--sign);font-size:clamp(22px,2.6vw,34px);line-height:1.05;color:var(--paper);background:repeating-linear-gradient(135deg,#1c1d22 0 14px,#212228 14px 28px)}
+.stars.ro .st{cursor:default}
+.lk-row{display:flex;flex-wrap:wrap;gap:6px 18px}
+
 /* ---------- Charts board ---------- */
 .charts{margin-top:56px}
 .board{margin-top:14px;max-width:780px;background:var(--paper);color:var(--ink);border-radius:3px;box-shadow:0 18px 30px -18px rgba(0,0,0,.6)}
@@ -303,7 +319,8 @@ button{cursor:pointer}
   <header class="store">
     <div class="sign"><div class="sign-panel">
       <h1 id="mTitle">Nuestro maratón Marvel</h1>
-      <p>Todo el universo Marvel en el orden en que pasa la historia. Una cinta cada vez.</p>
+      <p class="ucm-only">Todo el universo Marvel en el orden en que pasa la historia. Una cinta cada vez.</p>
+      <p class="j-only">Las pelis que vemos juntos, con lo que puntúa cada uno en Letterboxd.</p>
     </div></div>
     <div class="carnet" id="carnet"></div>
   </header>
@@ -320,7 +337,11 @@ button{cursor:pointer}
     </div>
   </section>
 
-  <main>
+  <nav class="aisles" aria-label="Secciones">
+    <button class="aisle" data-view="ucm" aria-pressed="true">Maratón Marvel</button>
+    <button class="aisle" data-view="juntas" aria-pressed="false">Vistas juntos <small id="jCountTab"></small></button>
+  </nav>
+  <main class="ucm-only">
     <div class="shelf-head"><h2>La estantería</h2><p id="shelfHint">Toca una cinta para sacarla.</p></div>
     <section class="shelf" id="shelf" aria-label="Cintas desbloqueadas"></section>
     <p class="end" id="endNote" hidden></p>
@@ -329,8 +350,20 @@ button{cursor:pointer}
       <div class="shelf-head"><h2 id="chH">Lo más valorado</h2><p>Toca una para sacarla al mostrador.</p></div>
       <div class="board" id="board"></div>
     </section>
-    <p class="credits">Carátulas: Marvel Studios, Sony Pictures y Netflix, vía Wikipedia. Uso personal, sin ánimo de lucro.</p>
   </main>
+  <main class="j-only">
+    <div class="shelf-head"><h2>Vistas juntos</h2><p>Las pelis que los dos registráis en Letterboxd el mismo día. Se apuntan solas.</p></div>
+    <section class="shelf" id="jShelf" aria-label="Pelis vistas juntos"></section>
+    <p class="end" id="jEmpty" hidden></p>
+    <section class="counter" id="jCounter" aria-live="polite"></section>
+    <section class="charts" aria-labelledby="jchH">
+      <div class="shelf-head"><h2 id="jchH">Lo más valorado</h2><p>Toca una para sacarla al mostrador.</p></div>
+      <div class="board" id="jBoard"></div>
+    </section>
+  </main>
+  <footer>
+    <p class="credits">Carátulas: Marvel Studios, Sony Pictures y Netflix, vía Wikipedia. Uso personal, sin ánimo de lucro.</p>
+  </footer>
 </div>
 
 <div class="phase-sign" id="phaseSign" hidden><div class="ps" id="ps"></div></div>
@@ -642,6 +675,92 @@ function renderCharts(){
   const foot=(missing||rows.length>10)?`<div class="foot"><span>${missing?`${missing} ${missing===1?"vista espera":"vistas esperan"} la nota ${esc(who)}.`:""}</span>${rows.length>10?`<button class="more" data-more>${chartAll?"Ver solo las 10 primeras":`Ver las ${rows.length}`}</button>`:""}</div>`:"";
   $("#board").innerHTML=tabs+(rows.length?`<ol>${li}</ol>`:empty)+foot;
 }
+/* ===================== VISTAS JUNTOS (Letterboxd, same day) ===================== */
+let LB=[{},{}], view="ucm", jSel=null, jTab=2, jAll=false;
+try{ if(localStorage.getItem("ucm-view")==="juntas") view="juntas"; }catch(e){}
+if(location.hash==="#juntos") view="juntas";
+const lbImg=u=>typeof u==="string"&&/^https:\/\/a\.ltrbxd\.com\//.test(u)?u:"";
+function juntas(){
+  const by=o=>{ const m={}; for(const id in (o||{})){ const e=o[id]; if(!e||!e.t||!e.d) continue; const k=lbNorm(e.t)+"|"+e.y; (m[k]||(m[k]=[])).push(e); } return m; };
+  const A=by(LB[0]), B=by(LB[1]), out=[];
+  for(const k in A){ if(!B[k]) continue;
+    const da=new Set(A[k].map(e=>e.d)), common=B[k].map(e=>e.d).filter(d=>da.has(d)).sort();
+    if(!common.length) continue;
+    const day=common[common.length-1], ea=A[k].find(e=>e.d===day), eb=B[k].find(e=>e.d===day);
+    if(lbMatch(ea.t,ea.y)) continue; // Marvel titles live in the marathon, not here
+    out.push({id:k.replace(/[^a-z0-9]+/g,"-"), t:ea.t, y:ea.y, d:day, times:common.length, img:lbImg(ea.img)||lbImg(eb.img),
+      r:[rv(ea.r),rv(eb.r)], rv:[String(ea.rv||""),String(eb.rv||"")], lk:[String(ea.lk||""),String(eb.lk||"")]});
+  }
+  return out.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:x.t.localeCompare(y.t));
+}
+function starsRO(val,label){
+  let h=`<span class="stars ro" role="img" aria-label="${esc(label)}: ${val?fmtScore(val)+" de 5":"sin nota"}">`;
+  for(let k=1;k<=5;k++){ const cls=val>=k?"on":val>=k-.5?"half":""; h+=`<span class="st ${cls}" aria-hidden="true">${ICON.star}<span class="fill">${ICON.star}</span></span>`; }
+  return h+`<span class="rv" aria-hidden="true">${val?fmtScore(val):"–"}</span></span>`;
+}
+const jAvg=x=>x.r[0]>0&&x.r[1]>0?(x.r[0]+x.r[1])/2:0;
+function renderJuntas(anim){
+  const list=juntas();
+  $("#jCountTab").textContent=list.length?String(list.length):"";
+  if(view!=="juntas") return;
+  if(!list.some(x=>x.id===jSel)) jSel=list.length?list[list.length-1].id:null;
+  // shelf
+  $("#jShelf").innerHTML=list.map((x,i)=>{ const a=jAvg(x); const im=x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" decoding="async">`:"";
+    return `<button class="spine jt ${x.id===jSel?"sel":""}" data-jpick="${x.id}" aria-label="${esc(x.t)}, ${fmtDate(x.d)}" aria-pressed="${x.id===jSel}">
+      <span class="sl"><span class="band">${a?fmtScore(a):"★"}</span><span class="win">${im}</span><span class="t ${x.t.length>34?"s3":x.t.length>22?"s2":""}">${esc(x.t)}</span><span class="n">${String(i+1).padStart(2,"0")}</span></span></button>`; }).join("");
+  const sh=$("#jShelf"), sel=sh.querySelector(".spine.sel"); if(sel && sh.scrollWidth>sh.clientWidth) sh.scrollLeft=sel.offsetLeft-sh.clientWidth/2+sel.offsetWidth/2;
+  const em=$("#jEmpty"); em.hidden=!!list.length;
+  em.textContent="Todavía no hay ninguna. Cuando los dos registréis la misma peli en Letterboxd con la misma fecha, aparecerá aquí sola (tarda hasta una hora).";
+  // box
+  const x=list.find(z=>z.id===jSel), el=$("#jCounter");
+  if(!x){ el.innerHTML=""; } else {
+    const num=String(list.indexOf(x)+1).padStart(2,"0"), a=jAvg(x);
+    const front=x.img?`<img src="${esc(x.img)}" alt="">`:`<div class="noimg">${esc(x.t)}</div>`;
+    const links=[0,1].filter(w=>/^https:\/\/letterboxd\.com\//.test(x.lk[w])).map(w=>`<a class="link" href="${esc(x.lk[w])}" target="_blank" rel="noopener noreferrer">Ver el registro de ${esc(w?nameB():nameA())}</a>`).join("");
+    el.innerHTML=`
+    <article class="box ${anim==="pull"?"pull":""}" style="--pc:var(--pink)" aria-label="${esc(x.t)}">
+      <div class="front">${front}<div class="hinge"><b aria-hidden="true">♥</b><span>Vistas juntos</span><i>nº ${num}</i></div><div class="sticker"><b>JUNTOS</b><small>${esc(fmtDate(x.d))}</small></div></div>
+      <div class="mhead"><h2>${esc(x.t)}</h2></div>
+      <div class="back">
+        <h2 class="dup">${esc(x.t)}</h2>
+        <dl class="specs">
+          <div><dt>La visteis el</dt><dd>${esc(fmtDate(x.d))}${x.times>1?` · ${x.times} veces`:""}</dd></div>
+          <div><dt>Estreno</dt><dd>${x.y}</dd></div>
+          <div><dt>Juntos</dt><dd>${a?`★ ${fmtScore(a)}`:"–"}</dd></div>
+        </dl>
+        ${links?`<div class="lk-row">${links}</div>`:""}
+        <div class="ficha">
+          <h3>Ficha de alquiler</h3>
+          <div class="rates">${[0,1].map(w=>{ const nm=w?nameB():nameA(), tx=x.rv[w];
+            return `<div class="rate-col"><span class="rate">${esc(nm)} ${starsRO(x.r[w],nm)}</span>${tx?`<blockquote class="rv-q ${tx.length>420?"long":""}"><p>${esc(tx)}</p><cite>Reseña de ${esc(nm)} en Letterboxd</cite>${tx.length>420?`<button type="button" class="rv-more" data-rvmore>Leer entera</button>`:""}</blockquote>`:""}</div>`; }).join("")}</div>
+        </div>
+      </div>
+    </article>`;
+    const im=el.querySelector(".front img");
+    if(im){ const mark=()=>el.querySelector(".front")?.classList.toggle("wide",im.naturalWidth>im.naturalHeight*1.05); if(im.complete&&im.naturalWidth) mark(); else im.addEventListener("load",mark,{once:true}); im.addEventListener("error",()=>{ im.outerHTML=`<div class="noimg">${esc(x.t)}</div>`; },{once:true}); }
+  }
+  // charts
+  const names=[nameA(),nameB(),"Juntos"], rows=[]; let missing=0;
+  for(const z of list){ if(jTab<2){ if(z.r[jTab]>0) rows.push({z,v:z.r[jTab]}); else missing++; } else { const v=jAvg(z); if(v) rows.push({z,v}); else missing++; } }
+  rows.sort((p,q)=>q.v-p.v || (p.z.d<q.z.d?1:-1));
+  let rank=0,prev=null; rows.forEach((r,i)=>{ if(r.v!==prev){rank=i+1;prev=r.v;} r.rank=rank; });
+  const tabs=`<div class="tabs" role="group" aria-label="Lista de">${names.map((n,i)=>`<button class="key ${i===jTab?"on":""}" data-jtab="${i}" aria-pressed="${i===jTab}">${esc(n)}</button>`).join("")}</div>`;
+  const shown=jAll?rows:rows.slice(0,10);
+  const li=shown.map(r=>`<li><button class="row" data-jpick="${r.z.id}" style="--pc:var(--pink)" aria-label="${r.rank}. ${esc(r.z.t)}, ${fmtScore(r.v)} de 5">
+      <span class="rk ${r.rank<=3?"top":""}">${r.rank}</span><span class="th">${r.z.img?`<img src="${esc(r.z.img)}" alt="" loading="lazy">`:""}</span>
+      <span class="tt"><b>${esc(r.z.t)}</b><small>${r.z.y} · vista el ${esc(fmtDate(r.z.d))}</small></span>
+      <span class="sc">${ICON.star}${fmtScore(r.v)}${jTab===2?`<small>${esc(nameA())} ${fmtScore(r.z.r[0])} · ${esc(nameB())} ${fmtScore(r.z.r[1])}</small>`:""}</span></button></li>`).join("");
+  const who=jTab===2?"de los dos":`de ${names[jTab]}`;
+  const empty=`<p class="empty">${list.length?`Todavía no hay ninguna con la nota ${esc(who)}.`:"Aquí saldrá vuestra lista en cuanto haya pelis vistas juntos."}</p>`;
+  const foot=(missing||rows.length>10)?`<div class="foot"><span>${missing?`${missing} sin la nota ${esc(who)}.`:""}</span>${rows.length>10?`<button class="more" data-jmore>${jAll?"Ver solo las 10 primeras":`Ver las ${rows.length}`}</button>`:""}</div>`:"";
+  $("#jBoard").innerHTML=tabs+(rows.length?`<ol>${li}</ol>`:empty)+foot;
+}
+function setView(v){
+  view=v; try{ localStorage.setItem("ucm-view",v); }catch(e){}
+  document.body.classList.toggle("v-juntas",v==="juntas");
+  document.querySelectorAll("[data-view]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.view===v)));
+  renderChrome(); renderJuntas();
+}
 /* VCR digits that roll like a tape counter */
 let rollReady=false;
 function setDigits(el,str){
@@ -662,6 +781,9 @@ function renderChrome(){
   const sinceTxt=since.toLocaleDateString("es-ES",{month:"long",year:"numeric"});
   $("#carnet").innerHTML=`<h2>Carnet de socios</h2>${has?`<div class="who">${esc(nameA())} y ${esc(nameB())}</div>`:`<button class="name-btn" id="nameBtn">Poned vuestros nombres</button>`}<div class="since">Socios desde ${esc(sinceTxt)}</div><div class="stripe"></div>`;
   const nb=$("#nameBtn"); if(nb) nb.onclick=()=>{openDrawer(); setTimeout(()=>$("#inA").focus(),400);};
+  if(view==="juntas"){ const n=juntas().length; setDigits($("#cCount"),String(n).padStart(3,"0")); $("#cCountL").textContent=n===1?"juntos":"juntos"; $("#cCountSr").textContent=`${n} pelis vistas juntos`; requestAnimationFrame(()=>{ rollReady=true; document.querySelectorAll(".strip").forEach(s=>s.style.transition=""); }); }
+  document.querySelectorAll(".vcr .read:not(:first-of-type)").forEach(r=>r.classList.toggle("j-hide",view==="juntas"));
+  if(view==="juntas") return;
   const seen=D.filter(d=>included(d)&&S.items[d.id]?.st==="seen");
   const mins=seen.reduce((a,d)=>a+minutesOf(d),0), h=Math.floor(mins/60), m=mins%60;
   setDigits($("#cCount"),String(seen.length).padStart(3,"0"));
@@ -677,7 +799,7 @@ function renderChrome(){
 }
 function render(opts={}){
   if(!selId || !unlockedList().some(d=>d.id===selId)) selId=(currentItem()||unlockedList().slice(-1)[0]||D[0]).id;
-  renderCounter(opts.anim); renderShelf(opts.arrive); renderChrome(); renderCharts();
+  renderCounter(opts.anim); renderShelf(opts.arrive); renderChrome(); renderCharts(); renderJuntas();
 }
 
 /* ===================== ACTIONS ===================== */
@@ -721,6 +843,13 @@ document.addEventListener("click",e=>{
   if(b){ const id=b.dataset.id,a=b.dataset.act; if(a==="next")goNext(); else if(a==="seen")setStatus(id,"seen"); else if(a==="skip")setStatus(id,"skip"); else setStatus(id,null); return; }
   const rm=e.target.closest("[data-rvmore]");
   if(rm){ const q=rm.closest(".rv-q"); q.classList.toggle("open"); rm.textContent=q.classList.contains("open")?"Leer menos":"Leer entera"; return; }
+  const vw=e.target.closest("[data-view]");
+  if(vw){ if(vw.dataset.view!==view) setView(vw.dataset.view); return; }
+  const jp=e.target.closest("[data-jpick]");
+  if(jp){ if(jp.dataset.jpick!==jSel){ jSel=jp.dataset.jpick; renderJuntas("pull"); } $("#jCounter").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"}); return; }
+  const jt=e.target.closest("[data-jtab]");
+  if(jt){ jTab=+jt.dataset.jtab; jAll=false; renderJuntas(); return; }
+  if(e.target.closest("[data-jmore]")){ jAll=!jAll; renderJuntas(); return; }
   const tb=e.target.closest("[data-tab]");
   if(tb){ chartTab=+tb.dataset.tab; chartAll=false; renderCharts(); return; }
   if(e.target.closest("[data-more]")){ chartAll=!chartAll; renderCharts(); return; }
@@ -784,6 +913,20 @@ function fbAdopt(){
   if(ae && (ae.matches("[data-note]")||ae.matches("[data-date]")||ae.matches("#inTitle,#inA,#inB"))){ renderChrome(); renderCharts(); return; }
   normalizeReach(); render(); fillSettings();
 }
+let lbTree=null, lbT=null;
+const lbURL=()=>FIREBASE_URL.replace(/\/+$/,"")+"/letterboxd.json";
+function lbStream(){
+  try{
+    const es=new EventSource(lbURL());
+    const set=(path,data)=>{ const ks=path.split("/").filter(Boolean); if(!ks.length){ lbTree=data; return; }
+      if(!lbTree||typeof lbTree!=="object") lbTree={}; let o=lbTree; for(let i=0;i<ks.length-1;i++){ if(!o[ks[i]]||typeof o[ks[i]]!=="object") o[ks[i]]={}; o=o[ks[i]]; }
+      if(data===null) delete o[ks[ks.length-1]]; else o[ks[ks.length-1]]=data; };
+    const on=ev=>{ try{ const m=JSON.parse(ev.data); if(!m) return;
+      if(ev.type==="put") set(m.path,m.data); else for(const k in m.data) set(m.path.replace(/\/$/,"")+"/"+k,m.data[k]);
+      clearTimeout(lbT); lbT=setTimeout(()=>{ const t=lbTree||{}; LB=[t[0]||t["0"]||{},t[1]||t["1"]||{}]; if(Array.isArray(t)){ LB=[t[0]||{},t[1]||{}]; } renderJuntas(); if(view==="juntas") renderChrome(); },80); }catch(e){} };
+    es.addEventListener("put",on); es.addEventListener("patch",on);
+  }catch(e){}
+}
 async function fbInit(){
   try{
     const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),7000);
@@ -797,6 +940,7 @@ async function fbInit(){
         if(syncMode!=="fb") setSync("fb");
         clearTimeout(fbAdoptT); fbAdoptT=setTimeout(fbAdopt,60); }catch(e){} };
     es.addEventListener("put",on); es.addEventListener("patch",on);
+    lbStream();
     es.addEventListener("cancel",()=>setSync("error"));
     es.onerror=()=>{ if(syncMode==="fb") setSync("wait"); };
   }catch(e){}
@@ -906,6 +1050,14 @@ async function lbImport(file,who){
       if(x.rv){ const t=it.rv?[...it.rv]:["",""]; t[who]=x.rv.slice(0,6000); it.rv=t; }
       if(S.lbFrom && x.d && x.d>=S.lbFrom && !it.st){ it.st="seen"; if(!it.d) it.d=x.d; }
       n++; }
+    if(fbOn && csv["diary.csv"]){
+      const rvBy={}; for(const r of (csv["reviews.csv"]||[])){ const k=lbNorm(r.Name)+"|"+r.Year+"|"+when(r); if(r.Review) rvBy[k]=lbText(r.Review).slice(0,6000); }
+      const dp={};
+      for(const r of csv["diary.csv"]){ const d=when(r); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!r.Name) continue;
+        const id=`${lbNorm(r.Name).replace(/ /g,"-")}_${r.Year}_${d}`, prev=((LB[who]||{})[id])||{};
+        dp[`${who}/${id}`]={t:r.Name,y:+r.Year,d,r:rv(r.Rating)||prev.r||0,rv:rvBy[lbNorm(r.Name)+"|"+r.Year+"|"+d]||prev.rv||"",img:prev.img||"",lk:prev.lk||""}; }
+      if(Object.keys(dp).length){ try{ await fetch(lbURL(),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(dp)}); }catch(e){} }
+    }
     normalizeReach(); commit(); render();
     msg("#lbMsg",n?`Listo: ${n} ${n===1?"título del maratón":"títulos del maratón"} con datos de ${nm}.`:`No hay ninguna película del maratón en ese archivo de ${nm}.`);
   }catch(e){ msg("#lbMsg","No se ha podido leer. Subid el .zip tal cual lo descarga Letterboxd.",true); }
@@ -950,5 +1102,5 @@ $("#inFile").onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new 
 
 /* ===================== BOOT ===================== */
 const saved=lsRead(); if(saved) S=sanitize(saved);
-normalizeReach(); render(); fillSettings(); initSync();
+normalizeReach(); render(); fillSettings(); setView(view); initSync();
 </script>

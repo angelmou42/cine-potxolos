@@ -30,9 +30,13 @@ async function feed(user) {
     kind: (tag(x, "guid").match(/letterboxd-(\w+)-/) || [])[1],
     title: decode(tag(x, "letterboxd:filmTitle")), year: tag(x, "letterboxd:filmYear"),
     date: tag(x, "letterboxd:watchedDate"), rating: +tag(x, "letterboxd:memberRating") || 0,
-    review: tag(x, "description"),
+    review: tag(x, "description"), link: tag(x, "link").trim(),
+    img: (tag(x, "description").match(/<img src="(https:\/\/a\.ltrbxd\.com\/[^"]+)"/) || [])[1] || "",
   })).filter(e => e.title && (e.kind === "review" || e.kind === "watch"));
 }
+// Each member's diary is kept apart (node "letterboxd") so the page can find films you both logged the same day.
+const diaryId = e => `${norm(e.title).replace(/ /g, "-")}_${e.year}_${e.date}`;
+const diary = {};
 
 const state = (await (await fetch(`${FB}.json`)).json()) || {};
 const items = state.items || {};
@@ -44,6 +48,12 @@ for (const who of [0, 1]) {
   let entries;
   try { entries = await feed(users[who]); } catch (e) { console.error(String(e)); failures++; continue; }
   entries.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)); // newest first
+  for (const e of [...entries].reverse()) { // oldest first, so the newest log of a day wins
+    if (!e.date) continue;
+    const id = diaryId(e), prev = diary[`${who}/${id}`] || {};
+    const rv = e.kind === "review" ? reviewText(e.review).slice(0, 6000) : "";
+    diary[`${who}/${id}`] = { t: e.title, y: +e.year, d: e.date, r: e.rating || prev.r || 0, rv: rv || prev.rv || "", img: e.img || prev.img || "", lk: e.link };
+  }
   const seen = new Set(), rated = new Set(), reviewed = new Set();
   for (const e of entries) { // newest entry per film decides
     const d = match(e.title, e.year); if (!d) continue;
@@ -64,5 +74,10 @@ const changed = Object.keys(patch).length;
 patch.lbAt = Date.now(); if (changed) patch.upd = Date.now();
 const res = await fetch(`${FB}.json`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
 if (!res.ok) throw new Error(`Firebase: HTTP ${res.status}`);
+if (Object.keys(diary).length) {
+  const r2 = await fetch(FB.replace(/\/maraton$/, "/letterboxd") + ".json", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(diary) });
+  if (!r2.ok) throw new Error(`Firebase diary: HTTP ${r2.status}`);
+  console.log(`Diary: ${Object.keys(diary).length} log(s) saved.`);
+}
 console.log(`Letterboxd: ${changed} change(s).`, changed ? Object.keys(patch).join(", ") : "");
 if (failures === 2) process.exit(1);
