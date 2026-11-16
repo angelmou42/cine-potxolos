@@ -712,7 +712,7 @@ document.addEventListener("input",e=>{
 
 /* ===================== PERSISTENCE ===================== */
 /* Shared store: Firebase Realtime Database (REST + live stream). Empty = not configured. */
-const FIREBASE_URL = "";
+const FIREBASE_URL = "https://maraton-ucm-default-rtdb.europe-west1.firebasedatabase.app";
 const FB_NODE = "maraton";
 let db=null, docRef=null, syncMode="local", saveTimer=null, saving=false, pendingSave=false;
 let fbOn=false, fbTree=null, fbSent={}, fbTimer=null, fbBusy=false, fbAgain=false, fbAdoptT=null;
