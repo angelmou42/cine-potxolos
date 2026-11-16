@@ -133,10 +133,40 @@ button{cursor:pointer}
 .ficha input[type=date]{background:transparent;border:0;border-bottom:2px solid var(--ink);border-radius:0;padding:2px 0;color:var(--ink);font-family:var(--label);font-weight:700;font-size:17px;color-scheme:light}
 .ficha textarea{width:100%;min-height:58px;resize:vertical;background:transparent;border:0;border-bottom:2px solid var(--ink);color:var(--ink);font-family:var(--body);font-size:16px;line-height:28px;padding:0}
 .ficha textarea::placeholder{color:#8a7d4a}
-.stars{display:inline-flex;gap:1px}
-.stars button{background:none;border:0;padding:3px;line-height:0;color:#8f8146}
-.stars button.on{color:var(--pink)}
-.stars svg{width:22px;height:22px}
+.stars{display:inline-flex;align-items:center;gap:3px}
+.st{position:relative;width:30px;height:30px;color:#8f8146;line-height:0;flex:none}
+.st svg{width:30px;height:30px}
+.st .fill{position:absolute;left:0;top:0;height:30px;width:0;overflow:hidden;color:var(--pink)}
+.st.half .fill{width:15px}.st.on .fill{width:30px}
+.st button{position:absolute;top:-6px;bottom:-6px;width:50%;background:none;border:0;padding:0;cursor:pointer}
+.st .hl{left:0}.st .hr{right:0}
+.st button:focus-visible{outline:2px solid var(--ink);outline-offset:-1px}
+.rv{margin-left:6px;font-family:var(--label);font-weight:800;font-size:18px;min-width:3ch;font-variant-numeric:tabular-nums}
+
+/* ---------- Charts board ---------- */
+.charts{margin-top:56px}
+.board{margin-top:14px;max-width:780px;background:var(--paper);color:var(--ink);border-radius:3px;box-shadow:0 18px 30px -18px rgba(0,0,0,.6)}
+.board .tabs{display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:linear-gradient(180deg,#2c2d33,#1b1c20);border-radius:3px 3px 0 0}
+.board .tabs .key{min-height:46px;font-size:16px;letter-spacing:.03em}
+.key.on{background:linear-gradient(180deg,#1d1e22,#26272c);color:var(--yellow);box-shadow:inset 0 2px 5px rgba(0,0,0,.6)}
+.board ol{list-style:none;margin:0;padding:4px 0}
+.board li+li{border-top:1px solid #cdd0c3}
+.row{width:100%;display:grid;grid-template-columns:40px 36px minmax(0,1fr) auto;gap:14px;align-items:center;padding:9px 18px 9px 14px;background:none;border:0;color:inherit;text-align:left;font:inherit;cursor:pointer;box-shadow:inset 5px 0 0 var(--pc)}
+.row:hover{background:var(--paper-2)}
+.row:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}
+.rk{font-family:var(--sign);font-size:22px;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.rk.top{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--yellow);font-size:19px;transform:rotate(-8deg);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.th{width:36px;height:52px;border-radius:2px;overflow:hidden;background:var(--case)}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.tt b{display:block;font-weight:800;font-size:17px;line-height:1.15;overflow-wrap:anywhere}
+.tt small{font-family:var(--label);font-weight:600;font-size:14px;color:var(--ink-2)}
+.sc{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:2px 5px;font-family:var(--label);font-weight:800;font-size:23px;line-height:1;font-variant-numeric:tabular-nums}
+.sc svg{width:19px;height:19px;color:var(--pink)}
+.sc small{flex-basis:100%;text-align:right;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.board .foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 16px;padding:8px 18px 12px;border-top:1px dashed #b9bcae;font-size:14px;color:var(--ink-2)}
+.board .more{background:none;border:0;padding:8px 0;font-family:var(--label);font-weight:800;font-size:16px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.board .empty{margin:0;padding:20px 18px;color:var(--ink-2)}
+@media (max-width:560px){.row{grid-template-columns:30px 32px minmax(0,1fr) auto;gap:10px;padding:8px 12px 8px 10px}.th{width:32px;height:46px}.tt b{font-size:16px}.sc{font-size:20px}.rk.top{width:32px;height:32px;font-size:16px}.sc{max-width:104px}.sc small{white-space:normal;font-size:12px;line-height:1.25}}
 
 /* pull-out animation when a new tape lands on the counter */
 .box.pull .front{animation:pullFront .9s cubic-bezier(.16,1,.3,1) both}
@@ -286,6 +316,10 @@ button{cursor:pointer}
     <section class="shelf" id="shelf" aria-label="Cintas desbloqueadas"></section>
     <p class="end" id="endNote" hidden></p>
     <section class="counter" id="counter" aria-live="polite"></section>
+    <section class="charts" id="charts" aria-labelledby="chH">
+      <div class="shelf-head"><h2 id="chH">Lo más valorado</h2><p>Toca una para sacarla al mostrador.</p></div>
+      <div class="board" id="board"></div>
+    </section>
     <p class="credits">Carátulas: Marvel Studios, Sony Pictures y Netflix, vía Wikipedia. Uso personal, sin ánimo de lucro.</p>
   </main>
 </div>
@@ -436,6 +470,7 @@ let S = freshState();
 let selId = null;
 function lsRead(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null}catch(e){return null}}
 function lsWrite(){try{localStorage.setItem(LS_KEY,JSON.stringify(S))}catch(e){}}
+const rv=v=>Math.max(0,Math.min(5,Math.round((Number(v)||0)*2)/2));
 function sanitize(o){
   const s=freshState(); if(!o||typeof o!=="object")return s;
   s.title=String(o.title||"").slice(0,60); s.a=String(o.a||"").slice(0,20); s.b=String(o.b||"").slice(0,20);
@@ -445,7 +480,7 @@ function sanitize(o){
   for(const k in it){ if(!(k in IDX))continue; const v=it[k]||{}; const x={};
     if(v.st==="seen"||v.st==="skip")x.st=v.st;
     if(typeof v.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.d))x.d=v.d;
-    if(Array.isArray(v.r))x.r=[Math.max(0,Math.min(5,v.r[0]|0)),Math.max(0,Math.min(5,v.r[1]|0))];
+    if(v.r&&typeof v.r==="object")x.r=[rv(v.r[0]),rv(v.r[1])];
     if(typeof v.n==="string")x.n=v.n.slice(0,600);
     if(Object.keys(x).length)s.items[k]=x; }
   return s;
@@ -481,6 +516,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 const ICON={
   play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5l12.5 7.5L7 19.5z"/></svg>',
   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  ff:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6v12l8.5-6zM12.5 6v12l8.5-6z"/></svg>',
   rewind:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 6v12L3 12zM20 6v12l-8-6z"/></svg>',
   eject:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5l8 9H4zM4 17h16v2.5H4z"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
@@ -488,10 +524,12 @@ const ICON={
   star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8z"/></svg>'
 };
 function posterImg(d,cls=""){ return POSTER[d.id]?`<img src="posters/${POSTER[d.id]}" alt="" ${cls} decoding="async">`:""; }
+const fmtScore=v=>(Math.round(v*100)/100).toLocaleString("es-ES",{maximumFractionDigits:2});
 function starsHTML(id,who,val,label){
   let h=`<span class="stars" role="group" aria-label="Puntuación de ${esc(label)}">`;
-  for(let k=1;k<=5;k++) h+=`<button type="button" data-star="${id}|${who}|${k}" class="${k<=val?"on":""}" aria-label="${k} de 5" aria-pressed="${k<=val}">${ICON.star}</button>`;
-  return h+"</span>";
+  for(let k=1;k<=5;k++){ const cls=val>=k?"on":val>=k-.5?"half":"";
+    h+=`<span class="st ${cls}">${ICON.star}<span class="fill">${ICON.star}</span><button type="button" class="hl" data-star="${id}|${who}|${k-.5}" aria-label="${fmtScore(k-.5)} de 5" aria-pressed="${val===k-.5}"></button><button type="button" class="hr" data-star="${id}|${who}|${k}" aria-label="${k} de 5" aria-pressed="${val===k}"></button></span>`; }
+  return h+`<span class="rv" aria-hidden="true">${val?fmtScore(val):"–"}</span></span>`;
 }
 function numOf(id){ return visibleList().findIndex(x=>x.id===id)+1; }
 
@@ -503,7 +541,8 @@ function renderCounter(anim){
   const num=String(numOf(d.id)).padStart(2,"0");
   const hingeName = d.opt?`Extra ${ph.name}`:ph.name;
   let acts;
-  if(st==="seen") acts=`<button class="key" data-act="unseen" data-id="${d.id}">${ICON.rewind}Desmarcar</button>`;
+  const nx=currentItem();
+  if(st==="seen") acts=(nx&&nx.id!==d.id?`<button class="key" data-act="next"><span class="led"></span>${ICON.ff}Siguiente cinta</button>`:"")+`<button class="key" data-act="unseen" data-id="${d.id}">${ICON.rewind}Desmarcar</button>`;
   else if(st==="skip") acts=`<button class="key" data-act="unskip" data-id="${d.id}"><span class="led"></span>${ICON.play}Recuperar</button>`;
   else acts=`<button class="key" data-act="seen" data-id="${d.id}"><span class="led"></span>${ICON.play}Vista</button><button class="key" data-act="skip" data-id="${d.id}">${ICON.eject}Descartar</button>`;
   const sticker = st==="seen" ? `<div class="sticker ${anim==="stamp"?"stamp-in":""}"><b>VISTA</b><small>${esc(fmtDate(it.d))}</small></div>`
@@ -556,6 +595,28 @@ function renderShelf(arriveId){
   if(!nextLocked() && !S.all && ul.length && ul.every(d=>S.items[d.id]?.st)){ end.hidden=false; end.textContent="Habéis llegado al final de lo estrenado. Las próximas cintas llegarán a la estantería cuando salgan."; }
   else end.hidden=true;
 }
+let chartTab=2, chartAll=false;
+function renderCharts(){
+  const names=[nameA(),nameB(),"Juntos"];
+  const seen=D.filter(d=>included(d)&&S.items[d.id]?.st==="seen");
+  const rows=[]; let missing=0;
+  for(const d of seen){ const r=S.items[d.id].r||[0,0];
+    if(chartTab<2){ if(r[chartTab]>0) rows.push({d,v:r[chartTab]}); else missing++; }
+    else if(r[0]>0&&r[1]>0) rows.push({d,v:(r[0]+r[1])/2,a:r[0],b:r[1]}); else missing++; }
+  rows.sort((x,y)=>y.v-x.v || IDX[x.d.id]-IDX[y.d.id]);
+  let rank=0,prev=null; rows.forEach((x,i)=>{ if(x.v!==prev){rank=i+1;prev=x.v;} x.rank=rank; });
+  const tabs=`<div class="tabs" role="group" aria-label="Lista de">${names.map((n,i)=>`<button class="key ${i===chartTab?"on":""}" data-tab="${i}" aria-pressed="${i===chartTab}">${esc(n)}</button>`).join("")}</div>`;
+  const shown=chartAll?rows:rows.slice(0,10);
+  const li=shown.map(x=>{ const ph=PHASE[x.d.ph];
+    return `<li><button class="row" data-pick="${x.d.id}" style="--pc:${ph.c}" aria-label="${x.rank}. ${esc(x.d.es)}, ${fmtScore(x.v)} de 5">
+      <span class="rk ${x.rank<=3?"top":""}">${x.rank}</span><span class="th">${posterImg(x.d,'loading="lazy"')}</span>
+      <span class="tt"><b>${esc(x.d.es)}</b><small>${esc(ph.name)} · ${x.d.y}</small></span>
+      <span class="sc">${ICON.star}${fmtScore(x.v)}${chartTab===2?`<small>${esc(nameA())} ${fmtScore(x.a)} · ${esc(nameB())} ${fmtScore(x.b)}</small>`:""}</span></button></li>`; }).join("");
+  const who=chartTab===2?"de los dos":`de ${names[chartTab]}`;
+  const empty=`<p class="empty">${seen.length?`Todavía no hay ninguna cinta con la nota ${esc(who)}.`:"Cuando marquéis una cinta como vista y la puntuéis, aparecerá aquí."}</p>`;
+  const foot=(missing||rows.length>10)?`<div class="foot"><span>${missing?`${missing} ${missing===1?"vista espera":"vistas esperan"} la nota ${esc(who)}.`:""}</span>${rows.length>10?`<button class="more" data-more>${chartAll?"Ver solo las 10 primeras":`Ver las ${rows.length}`}</button>`:""}</div>`:"";
+  $("#board").innerHTML=tabs+(rows.length?`<ol>${li}</ol>`:empty)+foot;
+}
 /* VCR digits that roll like a tape counter */
 let rollReady=false;
 function setDigits(el,str){
@@ -591,7 +652,7 @@ function renderChrome(){
 }
 function render(opts={}){
   if(!selId || !unlockedList().some(d=>d.id===selId)) selId=(currentItem()||unlockedList().slice(-1)[0]||D[0]).id;
-  renderCounter(opts.anim); renderShelf(opts.arrive); renderChrome();
+  renderCounter(opts.anim); renderShelf(opts.arrive); renderChrome(); renderCharts();
 }
 
 /* ===================== ACTIONS ===================== */
@@ -603,16 +664,20 @@ function setStatus(id,st){
   if(st==="seen" && !it.d) it.d=new Date().toISOString().slice(0,10);
   if(!Object.keys(it).length) delete S.items[id];
   normalizeReach(); commit();
-  if(S.reach!==prevReach && !S.all){
-    const nd=D[S.reach];
-    // show the sticker on the returned tape for a beat, then pull the next one out
-    render({anim: st==="seen"?"stamp":null});
-    setTimeout(()=>{ selId=nd.id; render({anim:"pull",arrive:nd.id});
-      const box=$("#counter"); const r=box.getBoundingClientRect();
-      if(r.top<0||r.top>innerHeight*.6) box.scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
-      if(typeof nd.ph==="number" && !before.has(nd.ph)) setTimeout(()=>phaseSign(nd.ph),500);
-    }, st==="seen"?750:250);
-  } else render({anim: st==="seen"?"stamp":null});
+  const moved=S.reach!==prevReach && !S.all, nd=D[S.reach];
+  if(moved && typeof nd.ph==="number" && !before.has(nd.ph)) pendingPhase=nd.ph;
+  // seen: the tape stays on the counter for rating; the next one lands on the shelf
+  if(st==="seen"){ render({anim:"stamp",arrive:moved?nd.id:null}); return; }
+  if(st==="skip"){ render(); setTimeout(goNext,250); return; }
+  render();
+}
+let pendingPhase=null;
+function goNext(){
+  const c=currentItem(); if(!c) return;
+  selId=c.id; render({anim:"pull"});
+  const box=$("#counter"); const r=box.getBoundingClientRect();
+  if(r.top<0||r.top>innerHeight*.6) box.scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
+  if(pendingPhase){ const p=pendingPhase; pendingPhase=null; setTimeout(()=>phaseSign(p),500); }
 }
 const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 function phaseSign(p){
@@ -624,15 +689,19 @@ function phaseSign(p){
 }
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]");
-  if(b){ const id=b.dataset.id,a=b.dataset.act; if(a==="seen")setStatus(id,"seen"); else if(a==="skip")setStatus(id,"skip"); else setStatus(id,null); return; }
+  if(b){ const id=b.dataset.id,a=b.dataset.act; if(a==="next")goNext(); else if(a==="seen")setStatus(id,"seen"); else if(a==="skip")setStatus(id,"skip"); else setStatus(id,null); return; }
+  const tb=e.target.closest("[data-tab]");
+  if(tb){ chartTab=+tb.dataset.tab; chartAll=false; renderCharts(); return; }
+  if(e.target.closest("[data-more]")){ chartAll=!chartAll; renderCharts(); return; }
   const p=e.target.closest("[data-pick]");
   if(p){ if(p.dataset.pick===selId) return; selId=p.dataset.pick; render({anim:"pull"});
     const box=$("#counter"); box.scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"}); return; }
   const s=e.target.closest("[data-star]");
   if(s){ const [id,who,k]=s.dataset.star.split("|"); const it=S.items[id]||(S.items[id]={});
     const r=it.r?[...it.r]:[0,0]; r[+who]= r[+who]===+k ? 0 : +k; it.r=r;
-    s.parentElement.querySelectorAll("button").forEach((x,i)=>{x.classList.toggle("on",i<r[+who]);x.setAttribute("aria-pressed",i<r[+who]);});
-    commit(); }
+    s.closest(".stars").outerHTML=starsHTML(id,+who,r[+who],+who?nameB():nameA());
+    const again=document.querySelector(`[data-star="${id}|${who}|${k}"]`); if(again) again.focus({preventScroll:true});
+    commit(); renderCharts(); }
 });
 document.addEventListener("input",e=>{
   const n=e.target.dataset?.note, dt=e.target.dataset?.date;
@@ -642,8 +711,66 @@ document.addEventListener("input",e=>{
 });
 
 /* ===================== PERSISTENCE ===================== */
+/* Shared store: Firebase Realtime Database (REST + live stream). Empty = not configured. */
+const FIREBASE_URL = "";
+const FB_NODE = "maraton";
 let db=null, docRef=null, syncMode="local", saveTimer=null, saving=false, pendingSave=false;
-function commit(){ S.upd=Date.now(); lsWrite(); if(docRef){ clearTimeout(saveTimer); saveTimer=setTimeout(pushRemote,700); } }
+let fbOn=false, fbTree=null, fbSent={}, fbTimer=null, fbBusy=false, fbAgain=false, fbAdoptT=null;
+function commit(){ S.upd=Date.now(); lsWrite();
+  if(fbOn){ clearTimeout(fbTimer); fbTimer=setTimeout(fbPush,600); }
+  else if(docRef){ clearTimeout(saveTimer); saveTimer=setTimeout(pushRemote,700); } }
+function flat(o,p="",out={}){ for(const k in o){ const v=o[k], key=p?p+"/"+k:k; if(v!==null&&typeof v==="object") flat(v,key,out); else if(v!==undefined) out[key]=v; } return out; }
+function unflat(m){ const o={}; for(const k in m){ const ks=k.split("/"); let c=o; for(let i=0;i<ks.length-1;i++){ if(!c[ks[i]]||typeof c[ks[i]]!=="object") c[ks[i]]={}; c=c[ks[i]]; } c[ks[ks.length-1]]=m[k]; } return o; }
+function fbDiff(){ const now=flat(S), d={}; for(const k in now) if(fbSent[k]!==now[k]) d[k]=now[k]; for(const k in fbSent) if(!(k in now)) d[k]=null; return d; }
+const fbURL=()=>FIREBASE_URL.replace(/\/+$/,"")+"/"+FB_NODE+".json";
+async function fbPush(){
+  if(fbBusy){ fbAgain=true; return; } const patch=fbDiff(); if(!Object.keys(patch).length) return;
+  fbBusy=true;
+  try{ const res=await fetch(fbURL(),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(patch)});
+    if(!res.ok) throw res.status;
+    for(const k in patch){ if(patch[k]===null) delete fbSent[k]; else fbSent[k]=patch[k]; } setSync("fb");
+  }catch(e){ setSync("error"); }
+  fbBusy=false; if(fbAgain){ fbAgain=false; fbPush(); }
+}
+function fbTreeSet(path,data){
+  const ks=path.split("/").filter(Boolean);
+  if(!ks.length){ fbTree=data; return; }
+  if(!fbTree||typeof fbTree!=="object") fbTree={};
+  let o=fbTree; for(let i=0;i<ks.length-1;i++){ if(!o[ks[i]]||typeof o[ks[i]]!=="object") o[ks[i]]={}; o=o[ks[i]]; }
+  if(data===null) delete o[ks[ks.length-1]]; else o[ks[ks.length-1]]=data;
+}
+let fbFirst=true;
+function fbAdopt(){
+  const remote=fbTree&&typeof fbTree==="object"?flat(fbTree):{};
+  if(fbFirst){ fbFirst=false;
+    if(!Object.keys(remote).length){ fbSent={}; if(S.upd>0||Object.keys(S.items).length) fbPush(); return; }
+    fbSent=flat(S); // first contact: what is on the web wins over this device
+  }
+  const pend=fbDiff(); delete pend.upd;
+  const merged=Object.assign({},remote); for(const k in pend){ if(pend[k]===null) delete merged[k]; else merged[k]=pend[k]; }
+  fbSent=remote; S=sanitize(unflat(merged)); lsWrite();
+  const ae=document.activeElement;
+  if(ae && (ae.matches("[data-note]")||ae.matches("[data-date]")||ae.matches("#inTitle,#inA,#inB"))){ renderChrome(); renderCharts(); return; }
+  normalizeReach(); render(); fillSettings();
+}
+async function fbInit(){
+  try{
+    const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),7000);
+    const res=await fetch(fbURL(),{signal:ctl.signal}); clearTimeout(t); if(!res.ok) throw res.status;
+    fbTree=await res.json(); fbOn=true; setSync("fb"); fbAdopt();
+  }catch(e){ return false; }
+  try{
+    const es=new EventSource(fbURL());
+    const on=ev=>{ try{ const m=JSON.parse(ev.data); if(!m) return;
+        if(ev.type==="put") fbTreeSet(m.path,m.data); else for(const k in m.data) fbTreeSet(m.path.replace(/\/$/,"")+"/"+k,m.data[k]);
+        if(syncMode!=="fb") setSync("fb");
+        clearTimeout(fbAdoptT); fbAdoptT=setTimeout(fbAdopt,60); }catch(e){} };
+    es.addEventListener("put",on); es.addEventListener("patch",on);
+    es.addEventListener("cancel",()=>setSync("error"));
+    es.onerror=()=>{ if(syncMode==="fb") setSync("wait"); };
+  }catch(e){}
+  return true;
+}
 async function pushRemote(){
   if(!docRef) return; if(saving){pendingSave=true;return;} saving=true;
   try{ await docRef.set({state:JSON.parse(JSON.stringify(S))}); setSync("ok"); }
@@ -653,6 +780,7 @@ async function pushRemote(){
 function setSync(mode){
   syncMode=mode;
   $("#syncHelp").innerHTML={
+    fb:`<span class="sync-dot ok"></span>Compartido. Todo se guarda en la web: cualquiera que abra este enlace ve y cambia el mismo progreso, al momento.`,
     ok:`<span class="sync-dot ok"></span>Sincronizado. El progreso se guarda en la web y lo veis igual desde cualquier dispositivo donde abráis este enlace con vuestra cuenta.`,
     wait:`<span class="sync-dot"></span>Conectando con el guardado compartido…`,
     local:`<span class="sync-dot local"></span>Guardado solo en este navegador. Para pasarlo a otro dispositivo, descargad una copia o copiad el código e importadlo allí.`,
@@ -668,7 +796,9 @@ function adoptRemote(remote){
   normalizeReach(); render(); fillSettings();
 }
 async function initSync(){
-  setSync("wait"); let resolved=false;
+  setSync("wait");
+  if(FIREBASE_URL && await fbInit()) return;
+  let resolved=false;
   const fallback=setTimeout(()=>{ if(!resolved) setSync("local"); },10000);
   try{ if(!window.claude || typeof window.claude.use!=="function") throw 0; db=await window.claude.use("db"); }catch(e){ db=null; }
   if(!db){ clearTimeout(fallback); resolved=true; setSync("local"); return; }
