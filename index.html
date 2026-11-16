@@ -514,13 +514,13 @@ const nameA=()=>S.a.trim()||"Yo", nameB=()=>S.b.trim()||"Ella";
 /* ===================== DERIVED ===================== */
 const included = d => S.opt || !d.opt;
 function visibleList(){return D.filter(included);}
+// The uncovered part of the shelf always follows the marks: everything up to the last
+// seen/discarded tape, plus the next one. Unmarking therefore covers tapes up again.
 function normalizeReach(){
-  if(!included(D[S.reach])){ let i=S.reach; while(i<D.length-1 && !included(D[i])) i++; S.reach=i; }
-  while(true){
-    const cur=D[S.reach]; if(!S.items[cur.id]?.st || !included(cur)) break;
-    let j=S.reach+1; while(j<D.length && !included(D[j])) j++;
-    if(j>=D.length) break; S.reach=j;
-  }
+  let last=-1; D.forEach((d,i)=>{ if(included(d)&&S.items[d.id]?.st) last=i; });
+  let j=last+1; while(j<D.length && !included(D[j])) j++;
+  if(j>=D.length){ j=D.length-1; while(j>0 && !included(D[j])) j--; }
+  S.reach=j;
 }
 function unlockedList(){return D.filter((d,i)=> included(d) && (S.all || i<=S.reach));}
 function nextLocked(){ if(S.all) return null; for(let j=S.reach+1;j<D.length;j++) if(included(D[j])) return D[j]; return null; }
@@ -689,14 +689,10 @@ function setStatus(id,st){
   if(st==="seen" && !it.d) it.d=new Date().toISOString().slice(0,10);
   if(!Object.keys(it).length) delete S.items[id];
   if(!st){
-    // undo: lock again whatever this mark had uncovered (the reach goes back to just after the last marked tape)
-    let last=-1; D.forEach((d,i)=>{ if(included(d)&&S.items[d.id]?.st) last=i; });
-    let j=last+1; while(j<D.length-1 && !included(D[j])) j++;
-    S.reach=Math.min(Math.max(0,j),D.length-1);
-    if(pendingPhase && !unlockedList().some(d=>d.ph===pendingPhase)) pendingPhase=null;
     selId=id;
   }
   normalizeReach(); commit();
+  if(pendingPhase && !unlockedList().some(d=>d.ph===pendingPhase)) pendingPhase=null;
   const moved=S.reach!==prevReach && !S.all, nd=D[S.reach];
   if(moved && typeof nd.ph==="number" && !before.has(nd.ph)) pendingPhase=nd.ph;
   // seen: the tape stays on the counter for rating; the next one lands on the shelf
