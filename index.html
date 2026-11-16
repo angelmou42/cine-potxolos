@@ -129,6 +129,15 @@ button{cursor:pointer}
   background-image:repeating-linear-gradient(transparent 0 27px,#eadfae 27px 28px)}
 .ficha h3{margin:0;font-family:var(--sign);font-weight:400;font-size:15px}
 .f-row{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.rates{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;align-items:start}
+.rate-col{display:grid;gap:8px;min-width:0}
+.rv-q{margin:0;padding:10px 12px 10px 14px;background:rgba(255,255,255,.55);border-left:4px solid var(--pink);border-radius:0 3px 3px 0;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.rv-q p{margin:0;white-space:pre-line;overflow-wrap:anywhere}
+.rv-q cite{display:block;margin-top:6px;font-style:normal;font-family:var(--label);font-weight:700;font-size:13px;color:var(--ink-2)}
+.rv-q.long p{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.rv-q.long.open p{display:block}
+.rv-more{background:none;border:0;padding:4px 0 0;font-family:var(--label);font-weight:800;font-size:14px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@media (max-width:700px){.rates{grid-template-columns:1fr}}
 .f-row label,.rate{display:flex;align-items:center;gap:10px;font-family:var(--label);font-weight:700;font-size:17px}
 .ficha input[type=date]{background:transparent;border:0;border-bottom:2px solid var(--ink);border-radius:0;padding:2px 0;color:var(--ink);font-family:var(--label);font-weight:700;font-size:17px;color-scheme:light}
 .ficha textarea{width:100%;min-height:58px;resize:vertical;background:transparent;border:0;border-bottom:2px solid var(--ink);color:var(--ink);font-family:var(--body);font-size:16px;line-height:28px;padding:0}
@@ -344,6 +353,18 @@ button{cursor:pointer}
     <label class="switch"><input type="checkbox" id="inOpt"><span><b>Extras opcionales</b><small>Series de Netflix (Daredevil, Jessica Jones, Luke Cage, Iron Fist, The Defenders, The Punisher) y películas de Spider-Man de Sony (Venom, Morbius…), cada una en su sitio de la cronología.</small></span></label>
   </section>
   <section>
+    <h3>Letterboxd</h3>
+    <p class="help" id="lbHelp"></p>
+    <div class="row2">
+      <label class="field"><span id="lbLA">Usuario</span><input id="inLbA" maxlength="40" autocomplete="off" spellcheck="false"></label>
+      <label class="field"><span id="lbLB">Usuario</span><input id="inLbB" maxlength="40" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <label class="field"><span>Marcar como vistas las que registréis desde el día (vacío: no marcar ninguna)</span><input type="date" id="inLbFrom"></label>
+    <p class="help">¿Notas más antiguas que los últimos registros? En Letterboxd: Settings → Import &amp; Export → Export your data. Subid aquí el .zip que os da.</p>
+    <div class="btns"><label class="btn" for="inLbFileA" id="lbBtnA" style="cursor:pointer">Subir .zip</label><input type="file" id="inLbFileA" accept=".zip,.csv" hidden><label class="btn" for="inLbFileB" id="lbBtnB" style="cursor:pointer">Subir .zip</label><input type="file" id="inLbFileB" accept=".zip,.csv" hidden></div>
+    <div class="msg" id="lbMsg"></div>
+  </section>
+  <section>
     <h3>Guardado</h3>
     <p class="help" id="syncHelp"></p>
     <div class="btns"><button class="btn" id="btnExport">Descargar copia</button><button class="btn" id="btnCopy">Copiar código</button></div>
@@ -465,7 +486,7 @@ const POSTER={"eyes-wakanda":"eyes-wakanda.jpg","cap1":"cap1.jpg","capmarvel":"c
 
 /* ===================== STATE ===================== */
 const LS_KEY = "ucm-maraton-v1";
-function freshState(){return {v:1,title:"",a:"",b:"",opt:false,all:false,reach:0,items:{},upd:0};}
+function freshState(){return {v:1,title:"",a:"",b:"",opt:false,all:false,reach:0,items:{},upd:0,lbA:"angelmou",lbB:"planetaryg0_",lbFrom:"",lbAt:0};}
 let S = freshState();
 let selId = null;
 function lsRead(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null}catch(e){return null}}
@@ -475,6 +496,8 @@ function sanitize(o){
   const s=freshState(); if(!o||typeof o!=="object")return s;
   s.title=String(o.title||"").slice(0,60); s.a=String(o.a||"").slice(0,20); s.b=String(o.b||"").slice(0,20);
   s.opt=!!o.opt; s.all=!!o.all; s.upd=Number(o.upd)||0;
+  if(typeof o.lbA==="string") s.lbA=o.lbA.trim().slice(0,40); if(typeof o.lbB==="string") s.lbB=o.lbB.trim().slice(0,40);
+  if(typeof o.lbFrom==="string"&&/^(\d{4}-\d{2}-\d{2})?$/.test(o.lbFrom)) s.lbFrom=o.lbFrom; s.lbAt=Number(o.lbAt)||0;
   s.reach=Math.max(0,Math.min(D.length-1,Number(o.reach)||0));
   const it=o.items&&typeof o.items==="object"?o.items:{};
   for(const k in it){ if(!(k in IDX))continue; const v=it[k]||{}; const x={};
@@ -482,6 +505,7 @@ function sanitize(o){
     if(typeof v.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.d))x.d=v.d;
     if(v.r&&typeof v.r==="object")x.r=[rv(v.r[0]),rv(v.r[1])];
     if(typeof v.n==="string")x.n=v.n.slice(0,600);
+    if(v.rv&&typeof v.rv==="object"){ const a=String(v.rv[0]||"").slice(0,6000), b=String(v.rv[1]||"").slice(0,6000); if(a||b) x.rv=[a,b]; }
     if(Object.keys(x).length)s.items[k]=x; }
   return s;
 }
@@ -551,7 +575,8 @@ function renderCounter(anim){
     <div class="ficha">
       <h3>Ficha de alquiler</h3>
       <div class="f-row"><label for="d-${d.id}">La vimos el</label><input type="date" id="d-${d.id}" data-date="${d.id}" value="${esc(it.d||"")}"></div>
-      <div class="f-row"><span class="rate">${esc(nameA())} ${starsHTML(d.id,0,r[0],nameA())}</span><span class="rate">${esc(nameB())} ${starsHTML(d.id,1,r[1],nameB())}</span></div>
+      <div class="rates">${[0,1].map(w=>{ const nm=w?nameB():nameA(), tx=(it.rv||[])[w]||"";
+        return `<div class="rate-col"><span class="rate">${esc(nm)} ${starsHTML(d.id,w,r[w],nm)}</span>${tx?`<blockquote class="rv-q ${tx.length>420?"long":""}"><p>${esc(tx)}</p><cite>Reseña de ${esc(nm)} en Letterboxd</cite>${tx.length>420?`<button type="button" class="rv-more" data-rvmore>Leer entera</button>`:""}</blockquote>`:""}</div>`; }).join("")}</div>
       <label class="sr" for="n-${d.id}">Nota</label>
       <textarea id="n-${d.id}" data-note="${d.id}" maxlength="600" placeholder="Una nota para acordarnos…">${esc(it.n||"")}</textarea>
     </div>`:"";
@@ -690,6 +715,8 @@ function phaseSign(p){
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]");
   if(b){ const id=b.dataset.id,a=b.dataset.act; if(a==="next")goNext(); else if(a==="seen")setStatus(id,"seen"); else if(a==="skip")setStatus(id,"skip"); else setStatus(id,null); return; }
+  const rm=e.target.closest("[data-rvmore]");
+  if(rm){ const q=rm.closest(".rv-q"); q.classList.toggle("open"); rm.textContent=q.classList.contains("open")?"Leer menos":"Leer entera"; return; }
   const tb=e.target.closest("[data-tab]");
   if(tb){ chartTab=+tb.dataset.tab; chartAll=false; renderCharts(); return; }
   if(e.target.closest("[data-more]")){ chartAll=!chartAll; renderCharts(); return; }
@@ -823,6 +850,11 @@ function fillSettings(){
   const set=(id,v)=>{const el=$(id); if(document.activeElement!==el) el.value=v;};
   set("#inTitle",S.title); set("#inA",S.a); set("#inB",S.b); $("#inOpt").checked=S.opt;
   $("#btnRevealAll").textContent=S.all?"Volver a ocultar lo que falta":"Mostrar todo";
+  set("#inLbA",S.lbA); set("#inLbB",S.lbB); set("#inLbFrom",S.lbFrom);
+  $("#lbLA").textContent=`Usuario de ${nameA()}`; $("#lbLB").textContent=`Usuario de ${nameB()}`;
+  $("#lbBtnA").textContent=`Subir el .zip de ${nameA()}`; $("#lbBtnB").textContent=`Subir el .zip de ${nameB()}`;
+  const ago=S.lbAt?Math.round((Date.now()-S.lbAt)/60000):null;
+  $("#lbHelp").textContent=`Cada hora se traen solas las notas y reseñas que registréis en Letterboxd, y mandan sobre las de aquí. Solo películas y especiales: las series se puntúan aquí. ${ago===null?"Todavía no se ha sincronizado ninguna vez.":`Última vez: hace ${ago<60?`${ago} min`:ago<1440?`${Math.round(ago/60)} h`:`${Math.round(ago/1440)} días`}.`}`;
 }
 $("#openSettings").onclick=openDrawer; $("#closeSettings").onclick=closeDrawer; $("#scrim").onclick=closeDrawer;
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeDrawer(); });
@@ -831,6 +863,51 @@ let nameT;
   S.title=$("#inTitle").value; S.a=$("#inA").value; S.b=$("#inB").value; renderChrome();
   clearTimeout(nameT); nameT=setTimeout(()=>{commit(); render();},500);
 }));
+["#inLbA","#inLbB"].forEach(id=>$(id).addEventListener("change",()=>{ S.lbA=$("#inLbA").value.trim(); S.lbB=$("#inLbB").value.trim(); commit(); }));
+$("#inLbFrom").addEventListener("change",e=>{ S.lbFrom=e.target.value||""; commit(); });
+/* ---- Letterboxd export (.zip or .csv) ---- */
+const lbNorm=t=>String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/&/g," and ").replace(/^marvel'?s\s+/,"").replace(/^the\s+/,"").replace(/[^a-z0-9]+/g," ").trim();
+function lbMatch(title,year){
+  const n=lbNorm(title), y=+year;
+  let hit=D.find(d=>lbNorm(d.en)===n&&d.y===y); if(hit) return hit;
+  const near=D.filter(d=>lbNorm(d.en)===n&&Math.abs(d.y-y)<=1); return near.length===1?near[0]:null;
+}
+function parseCSV(t){
+  const rows=[]; let row=[], f="", q=false;
+  for(let i=0;i<t.length;i++){ const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true; else if(c===","){row.push(f);f="";} else if(c==="\n"){row.push(f);rows.push(row);row=[];f="";} else if(c!=="\r") f+=c; }
+  if(f||row.length){row.push(f);rows.push(row);}
+  const h=rows.shift()||[]; return rows.filter(r=>r.length>1).map(r=>Object.fromEntries(h.map((k,i)=>[k.trim(),r[i]??""])));
+}
+const lbText=h=>String(h).replace(/<br\s*\/?>/gi,"\n").replace(/<\/p>\s*<p>/gi,"\n\n").replace(/<[^>]+>/g,"").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#0?39;/g,"'").trim();
+function loadJSZip(){ return window.JSZip?Promise.resolve(window.JSZip):new Promise((ok,ko)=>{ const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; sc.onload=()=>ok(window.JSZip); sc.onerror=ko; document.head.appendChild(sc); }); }
+async function lbImport(file,who){
+  const nm=who?nameB():nameA(); msg("#lbMsg","Leyendo el archivo…");
+  try{
+    const csv={};
+    if(/\.zip$/i.test(file.name)){ const Z=await loadJSZip(); const z=await Z.loadAsync(file);
+      for(const k of ["ratings.csv","reviews.csv","diary.csv"]){ const f=z.file(k)||z.file(new RegExp("(^|/)"+k.replace(".","\\.")+"$"))[0]; if(f) csv[k]=parseCSV(await f.async("string")); } }
+    else { const t=await file.text(); const rows=parseCSV(t); const h=Object.keys(rows[0]||{});
+      csv[h.includes("Review")?"reviews.csv":h.includes("Watched Date")?"diary.csv":"ratings.csv"]=rows; }
+    if(!Object.keys(csv).length) throw 0;
+    const got={}; const g=(row)=>{ const d=lbMatch(row.Name,row.Year); if(!d) return null; return got[d.id]||(got[d.id]={}); };
+    const when=r=>r["Watched Date"]||r.Date||"";
+    for(const r of (csv["diary.csv"]||[])){ const x=g(r); if(x&&when(r)>(x.d||"")) x.d=when(r); }
+    for(const r of (csv["reviews.csv"]||[]).slice().sort((a,b)=>when(a)<when(b)?-1:1)){ const x=g(r); if(x&&r.Review){ x.rv=lbText(r.Review); if(when(r)>(x.d||"")) x.d=when(r); } }
+    for(const r of (csv["ratings.csv"]||[])){ const x=g(r); if(x&&+r.Rating) x.r=rv(r.Rating); }
+    let n=0;
+    for(const id in got){ const x=got[id], it=S.items[id]||(S.items[id]={});
+      if(x.r){ const r=it.r?[...it.r]:[0,0]; r[who]=x.r; it.r=r; }
+      if(x.rv){ const t=it.rv?[...it.rv]:["",""]; t[who]=x.rv.slice(0,6000); it.rv=t; }
+      if(S.lbFrom && x.d && x.d>=S.lbFrom && !it.st){ it.st="seen"; if(!it.d) it.d=x.d; }
+      n++; }
+    normalizeReach(); commit(); render();
+    msg("#lbMsg",n?`Listo: ${n} ${n===1?"título del maratón":"títulos del maratón"} con datos de ${nm}.`:`No hay ninguna película del maratón en ese archivo de ${nm}.`);
+  }catch(e){ msg("#lbMsg","No se ha podido leer. Subid el .zip tal cual lo descarga Letterboxd.",true); }
+}
+$("#inLbFileA").onchange=e=>{ const f=e.target.files[0]; if(f) lbImport(f,0); e.target.value=""; };
+$("#inLbFileB").onchange=e=>{ const f=e.target.files[0]; if(f) lbImport(f,1); e.target.value=""; };
 $("#inOpt").onchange=e=>{ S.opt=e.target.checked; normalizeReach(); commit(); render(); };
 $("#btnRevealAll").onclick=()=>{ if(S.all){ S.all=false; commit(); render(); fillSettings(); } else $("#confirmReveal").hidden=false; };
 $("#noReveal").onclick=()=>$("#confirmReveal").hidden=true;
