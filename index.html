@@ -688,6 +688,14 @@ function setStatus(id,st){
   if(st) it.st=st; else delete it.st;
   if(st==="seen" && !it.d) it.d=new Date().toISOString().slice(0,10);
   if(!Object.keys(it).length) delete S.items[id];
+  if(!st){
+    // undo: lock again whatever this mark had uncovered (the reach goes back to just after the last marked tape)
+    let last=-1; D.forEach((d,i)=>{ if(included(d)&&S.items[d.id]?.st) last=i; });
+    let j=last+1; while(j<D.length-1 && !included(D[j])) j++;
+    S.reach=Math.min(Math.max(0,j),D.length-1);
+    if(pendingPhase && !unlockedList().some(d=>d.ph===pendingPhase)) pendingPhase=null;
+    selId=id;
+  }
   normalizeReach(); commit();
   const moved=S.reach!==prevReach && !S.all, nd=D[S.reach];
   if(moved && typeof nd.ph==="number" && !before.has(nd.ph)) pendingPhase=nd.ph;
