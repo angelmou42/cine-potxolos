@@ -8,6 +8,7 @@ const sorted = v => Array.isArray(v) ? v.map(sorted) : v && typeof v === "object
   ? Object.fromEntries(Object.keys(v).sort().map(k => [k, sorted(v[k])])) : v;
 
 const data = { maraton: await get("maraton"), letterboxd: await get("letterboxd") };
+if (data.maraton) delete data.maraton.lbAt; // hourly timestamp: not worth a new copy
 if (!data.maraton) throw new Error("La base de datos ha devuelto el maratón vacío: no se guarda la copia.");
 const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(new Date());
 const dir = new URL("../backups/", import.meta.url); mkdirSync(dir, { recursive: true });
