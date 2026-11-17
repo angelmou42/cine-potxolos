@@ -1,18 +1,8 @@
 // Brings each member's Letterboxd ratings and reviews (from their public RSS) into the shared Firebase state.
 // Letterboxd wins: a rating or review there overwrites the one in the web.
-import { readFileSync } from "node:fs";
+import { DB, norm, match } from "./common.mjs";
 
-const FB = "https://maraton-ucm-default-rtdb.europe-west1.firebasedatabase.app/maraton";
-const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const D = eval(html.match(/const D = (\[[\s\S]*?\n\]);/)[1]);
-
-const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/&/g, " and ")
-  .replace(/^marvel'?s\s+/, "").replace(/^the\s+/, "").replace(/[^a-z0-9]+/g, " ").trim();
-function match(title, year) {
-  const n = norm(title), y = +year;
-  const hit = D.find(d => norm(d.en) === n && d.y === y); if (hit) return hit;
-  const near = D.filter(d => norm(d.en) === n && Math.abs(d.y - y) <= 1); return near.length === 1 ? near[0] : null;
-}
+const FB = `${DB}/maraton`;
 const decode = s => s.replace(/&#0?39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 const tag = (x, t) => { const m = x.match(new RegExp(`<${t}(?:\\s[^>]*)?>([\\s\\S]*?)</${t}>`)); return m ? m[1] : ""; };
 function reviewText(desc) {

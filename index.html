@@ -118,6 +118,7 @@ button{cursor:pointer}
 .key:hover{background:linear-gradient(180deg,#45464e,#30313a)}
 .btn{min-height:46px;border-radius:999px;padding:0 22px;font-family:var(--label);font-weight:800;font-size:18px;letter-spacing:.02em;border:2px solid var(--ink);background:transparent;color:var(--ink);display:inline-flex;align-items:center;gap:8px;transition:transform .15s,background .2s}
 .btn[hidden]{display:none}
+.btn[disabled]{opacity:.5;cursor:default}
 .btn svg{width:18px;height:18px}
 .btn:hover{background:rgba(20,20,22,.07)}
 .btn:active{transform:scale(.97)}
@@ -270,6 +271,10 @@ body:not(.v-juntas) .j-only{display:none!important}
 @media (prefers-reduced-motion:reduce){.inv-card{animation:none}}
 
 /* ---------- Settings: the shop's book ---------- */
+.who-pick{display:flex;gap:8px;margin:0 0 12px}
+.who-pick[hidden]{display:none}
+.who-pick button{flex:1;min-height:44px;border-radius:4px;border:2px solid var(--ink);background:#fff;color:var(--ink);font-family:var(--label);font-weight:800;font-size:17px;cursor:pointer}
+.who-pick button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .scrim{position:fixed;inset:0;z-index:40;background:rgba(10,14,40,.6);opacity:0;pointer-events:none;transition:opacity .3s}
 .scrim.open{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;right:0;bottom:0;z-index:50;width:min(440px,100%);background:var(--paper);color:var(--ink);transform:translateX(104%);transition:transform .45s cubic-bezier(.16,1,.3,1);overflow-y:auto;
@@ -426,6 +431,13 @@ body:not(.v-juntas) .j-only{display:none!important}
     <p class="help" id="installHelp"></p>
     <div class="btns"><button class="btn" id="btnInstall2" hidden>Instalar en este dispositivo</button><button class="btn" id="btnShareInstall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 14v6h14v-6"/></svg>Mandar enlace para instalar</button></div>
     <p class="msg" id="shareMsg"></p>
+  </section>
+  <section id="pushSec">
+    <h3>Avisos</h3>
+    <p class="help" id="pushHelp"></p>
+    <div class="who-pick" id="pushWho" role="group" aria-label="Quién eres en este móvil"><button data-me="0" aria-pressed="false"></button><button data-me="1" aria-pressed="false"></button></div>
+    <div class="btns"><button class="btn btn-main" id="pushOn">Activar avisos</button><button class="btn" id="pushTest" hidden>Mandarme uno de prueba</button><button class="btn" id="pushOff" hidden>Desactivar</button></div>
+    <p class="msg" id="pushMsg"></p>
   </section>
   <section>
     <h3>Letterboxd</h3>
@@ -611,6 +623,7 @@ function fmtDate(iso){ if(!iso) return ""; const [y,m,d]=iso.split("-"); return 
 
 /* ===================== RENDER ===================== */
 const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const ICON={
   play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5l12.5 7.5L7 19.5z"/></svg>',
@@ -1042,6 +1055,7 @@ async function initSync(){
 function openDrawer(){ $("#drawer").classList.add("open"); $("#scrim").classList.add("open"); $("#drawer").setAttribute("aria-hidden","false"); fillSettings(); }
 function closeDrawer(){ $("#drawer").classList.remove("open"); $("#scrim").classList.remove("open"); $("#drawer").setAttribute("aria-hidden","true"); $("#confirmReveal").hidden=true; $("#confirmReset").hidden=true; }
 function fillSettings(){
+  if(typeof pushUI==="function") pushUI();
   const set=(id,v)=>{const el=$(id); if(document.activeElement!==el) el.value=v;};
   set("#inTitle",S.title); set("#inA",S.a); set("#inB",S.b); $("#inOpt").checked=S.opt;
   $("#btnRevealAll").textContent=S.all?"Volver a ocultar lo que falta":"Mostrar todo";
@@ -1195,7 +1209,54 @@ $("#btnShareInstall").onclick=async()=>{
 };
 $("#btnInstall").onclick=doInstall; $("#btnInstall2").onclick=doInstall;
 installUI();
-if("serviceWorker" in navigator && location.protocol==="https:") addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+
+/* ===================== PUSH NOTICES ===================== */
+// Each phone subscribes for one person; sync/notify.mjs (GitHub Actions, every few minutes) sends it the other one's ratings.
+const VAPID="BEvoesQgdGfv6Ytj8XEfaJYDEIw-lgr0Ju2ODa0rp4U9-uV1yF0MPuQ8P77ZoGEBSj8oAc_FxNXKGhoy3rjcRlI";
+const pushOK=()=>"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window&&isSecureContext;
+const pushURL=(k,id,sub="")=>FIREBASE_URL.replace(/\/+$/,"")+`/push/${k}/${id}${sub}.json`;
+const subId=ep=>{ let h=5381; for(const c of ep) h=(h*33+c.charCodeAt(0))>>>0; return "s"+h.toString(36); };
+let pushMe=(()=>{ try{ const v=localStorage.getItem("ucm-me"); return v==="0"||v==="1"?+v:null; }catch(e){ return null; } })();
+let pushSub=null;
+async function pushReg(){ return navigator.serviceWorker.getRegistration().then(r=>r||navigator.serviceWorker.register("sw.js")).then(()=>navigator.serviceWorker.ready); }
+async function pushSave(test){
+  const j=pushSub.toJSON(), k=pushMe?"b":"a";
+  const body={endpoint:j.endpoint,keys:j.keys,at:Date.now(),ua:navigator.userAgentData?.platform||""}; if(test) body.test=1;
+  const r=await fetch(pushURL(k,subId(j.endpoint)),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+}
+function pushUI(){
+  const nm=[nameA(),nameB()], on=!!pushSub&&pushMe!==null;
+  $$("#pushWho button").forEach(b=>{ b.textContent="Soy "+nm[+b.dataset.me]; b.setAttribute("aria-pressed",String(pushMe===+b.dataset.me)); });
+  $("#pushWho").hidden=on||!pushOK(); $("#pushOn").hidden=on||!pushOK(); $("#pushTest").hidden=!on; $("#pushOff").hidden=!on;
+  $("#pushOn").disabled=pushMe===null;
+  $("#pushHelp").textContent=!pushOK()
+    ?(isIOS&&!standalone()?"En iPhone los avisos solo funcionan con la app instalada: añádela a la pantalla de inicio (arriba) y actívalos desde ahí.":"Este navegador no puede recibir avisos.")
+    :on?`Activados en este móvil para ${nm[pushMe]}. Te llegará un aviso cuando ${nm[1-pushMe]} puntúe o escriba una reseña, aquí o en Letterboxd. Suelen tardar entre 5 y 15 minutos.`
+    :`Te avisa en el móvil cuando el otro puntúa o escribe una reseña, aquí o en Letterboxd. Primero di quién eres en este móvil:`;
+}
+$$("#pushWho button").forEach(b=>b.onclick=()=>{ pushMe=+b.dataset.me; try{ localStorage.setItem("ucm-me",String(pushMe)); }catch(e){} pushUI(); });
+$("#pushOn").onclick=async()=>{
+  if(pushMe===null) return; msg("#pushMsg","Activando…");
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){ msg("#pushMsg",perm==="denied"?"Los avisos están bloqueados para esta web. Desbloquéalos en el navegador (el candado junto a la dirección ▸ Notificaciones) y vuelve a probar.":"No se ha dado permiso para los avisos.",true); return; }
+    const reg=await pushReg(), key=Uint8Array.from(atob(VAPID.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+    pushSub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+    await pushSave(true); pushUI(); msg("#pushMsg","Listo. En unos minutos te llegará un aviso de prueba.");
+  }catch(e){ pushSub=null; pushUI(); msg("#pushMsg","No se han podido activar los avisos ("+(e.message||e)+").",true); }
+};
+$("#pushTest").onclick=async()=>{ try{ await pushSave(true); msg("#pushMsg","Pedido. Te llegará en unos minutos."); }catch(e){ msg("#pushMsg","No se ha podido pedir ("+e.message+").",true); } };
+$("#pushOff").onclick=async()=>{
+  try{ const id=subId(pushSub.toJSON().endpoint); await pushSub.unsubscribe().catch(()=>{}); await fetch(pushURL(pushMe?"b":"a",id),{method:"DELETE"}); }catch(e){}
+  pushSub=null; pushUI(); msg("#pushMsg","Avisos desactivados en este móvil.");
+};
+pushUI();
+if(pushOK()) navigator.serviceWorker.getRegistration().then(r=>r&&r.pushManager.getSubscription()).then(sub=>{
+  if(!sub) return; pushSub=sub; pushUI();
+  if(pushMe!==null) pushSave(false).catch(()=>{}); // keeps the subscription listed even if it was cleared
+}).catch(()=>{});
 
 /* ===================== BOOT ===================== */
 const saved=lsRead(); if(saved) S=sanitize(saved);

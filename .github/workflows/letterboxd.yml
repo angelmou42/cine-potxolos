@@ -4,7 +4,8 @@ on:
     - cron: "17 * * * *"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+concurrency: letterboxd
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -15,3 +16,13 @@ jobs:
         with:
           node-version: 22
       - run: node sync/letterboxd.mjs
+      - name: Copia de seguridad diaria
+        if: always()
+        run: |
+          node sync/backup.mjs
+          git config user.name "copia-de-seguridad"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backups
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "Copia de seguridad $(TZ=Europe/Madrid date +%F)"
+          git pull --rebase -q && git push -q

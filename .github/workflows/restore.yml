@@ -1,0 +1,19 @@
+name: Restaurar copia
+on:
+  workflow_dispatch:
+    inputs:
+      fecha:
+        description: "Fecha de la copia a recuperar (AAAA-MM-DD). Sustituye todo lo guardado ahora."
+        required: true
+permissions:
+  contents: read
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node sync/restore.mjs "${{ inputs.fecha }}"
