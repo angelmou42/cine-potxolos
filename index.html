@@ -352,7 +352,7 @@ body:not(.v-juntas) .j-only{display:none!important}
     </section>
   </main>
   <main class="j-only">
-    <div class="shelf-head"><h2>Vistas juntos</h2><p>Las pelis que los dos registráis en Letterboxd el mismo día. Se apuntan solas.</p></div>
+    <div class="shelf-head"><h2>Vistas juntos</h2><p>Las pelis que los dos registráis en Letterboxd el mismo día (o con un día de diferencia). Se apuntan solas.</p></div>
     <section class="shelf" id="jShelf" aria-label="Pelis vistas juntos"></section>
     <p class="end" id="jEmpty" hidden></p>
     <section class="counter" id="jCounter" aria-live="polite"></section>
@@ -684,9 +684,14 @@ function juntas(){
   const by=o=>{ const m={}; for(const id in (o||{})){ const e=o[id]; if(!e||!e.t||!e.d) continue; const k=lbNorm(e.t)+"|"+e.y; (m[k]||(m[k]=[])).push(e); } return m; };
   const A=by(LB[0]), B=by(LB[1]), out=[];
   for(const k in A){ if(!B[k]) continue;
-    const da=new Set(A[k].map(e=>e.d)), common=B[k].map(e=>e.d).filter(d=>da.has(d)).sort();
-    if(!common.length) continue;
-    const day=common[common.length-1], ea=A[k].find(e=>e.d===day), eb=B[k].find(e=>e.d===day);
+    // same day, or one day apart (a film that ends around midnight gets logged on either date)
+    const dn=d=>Date.parse(d+"T12:00:00Z")/864e5, pairs=[];
+    for(const a of A[k]) for(const b of B[k]) if(Math.abs(dn(a.d)-dn(b.d))<=1) pairs.push([a,b]);
+    if(!pairs.length) continue;
+    const late=p=>(p[0].d>p[1].d?p[0].d:p[1].d);
+    pairs.sort((p,q)=>late(p)<late(q)?-1:1);
+    const [ea,eb]=pairs[pairs.length-1], day=ea.d<eb.d?ea.d:eb.d;
+    const common=[...new Set(pairs.map(p=>p[0].d<p[1].d?p[0].d:p[1].d))];
     if(lbMatch(ea.t,ea.y)) continue; // Marvel titles live in the marathon, not here
     out.push({id:k.replace(/[^a-z0-9]+/g,"-"), t:ea.t, y:ea.y, d:day, times:common.length, img:lbImg(ea.img)||lbImg(eb.img),
       r:[rv(ea.r),rv(eb.r)], rv:[String(ea.rv||""),String(eb.rv||"")], lk:[String(ea.lk||""),String(eb.lk||"")]});
