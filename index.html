@@ -117,6 +117,7 @@ button{cursor:pointer}
 .led{width:9px;height:9px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 2px rgba(0,0,0,.4);flex:none}
 .key:hover{background:linear-gradient(180deg,#45464e,#30313a)}
 .btn{min-height:46px;border-radius:999px;padding:0 22px;font-family:var(--label);font-weight:800;font-size:18px;letter-spacing:.02em;border:2px solid var(--ink);background:transparent;color:var(--ink);display:inline-flex;align-items:center;gap:8px;transition:transform .15s,background .2s}
+.btn[hidden]{display:none}
 .btn svg{width:18px;height:18px}
 .btn:hover{background:rgba(20,20,22,.07)}
 .btn:active{transform:scale(.97)}
@@ -252,6 +253,22 @@ body:not(.v-juntas) .j-only{display:none!important}
 @keyframes hang{0%{transform:translateY(-120%) rotate(-6deg);opacity:0}22%{transform:translateY(0) rotate(3deg);opacity:1}34%{transform:rotate(-1.5deg)}44%{transform:none}85%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-30px)}}
 @keyframes flicker{0%{filter:brightness(.25)}12%{filter:brightness(1.2)}18%{filter:brightness(.3)}26%{filter:brightness(1.1)}30%{filter:brightness(.5)}38%,100%{filter:none}}
 
+/* ---------- Install invite (#instalar): a membership card on the carpet ---------- */
+.invite{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(120% 80% at 50% 0%,#2a3c82,transparent 70%),var(--carpet);overflow-y:auto}
+.invite[hidden]{display:none}
+.inv-card{position:relative;width:min(380px,100%);background:var(--paper);color:var(--ink);border-radius:10px;padding:30px 24px 22px 32px;box-shadow:0 30px 60px -20px rgba(0,0,0,.75);transform:rotate(-1.5deg);animation:invIn .6s cubic-bezier(.2,1.2,.4,1) both;text-align:left}
+.inv-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;border-radius:10px 0 0 10px;background:repeating-linear-gradient(180deg,var(--orange) 0 44px,var(--pink) 44px 74px,var(--yellow) 74px 110px)}
+.inv-card img{width:88px;height:88px;border-radius:20px;display:block;box-shadow:0 6px 14px -6px rgba(0,0,0,.5)}
+.inv-kick{margin:18px 0 2px;font-family:var(--label);font-weight:800;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.inv-card h2{margin:0;font-family:var(--sign);font-weight:400;font-size:34px;line-height:.95}
+.inv-txt{margin:12px 0 20px;font-size:16px;line-height:1.4;color:var(--ink-2)}
+.inv-txt b{color:var(--ink)}
+.inv-card .btn{width:100%;justify-content:center;min-height:54px;font-size:20px}
+.inv-card .btn[disabled]{opacity:.55;cursor:default}
+.inv-skip{display:block;margin:12px auto 0;background:none;border:0;padding:10px;font-family:var(--label);font-weight:600;font-size:16px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@keyframes invIn{from{opacity:0;transform:translateY(30px) rotate(4deg)}to{opacity:1;transform:rotate(-1.5deg)}}
+@media (prefers-reduced-motion:reduce){.inv-card{animation:none}}
+
 /* ---------- Settings: the shop's book ---------- */
 .scrim{position:fixed;inset:0;z-index:40;background:rgba(10,14,40,.6);opacity:0;pointer-events:none;transition:opacity .3s}
 .scrim.open{opacity:1;pointer-events:auto}
@@ -377,6 +394,16 @@ body:not(.v-juntas) .j-only{display:none!important}
 
 <div class="phase-sign" id="phaseSign" hidden><div class="ps" id="ps"></div></div>
 
+<div class="invite" id="invite" hidden role="dialog" aria-modal="true" aria-labelledby="invTitle">
+  <div class="inv-card">
+    <img src="icons/icon-192.png" alt="">
+    <p class="inv-kick">Te han hecho socia del videoclub</p>
+    <h2 id="invTitle">Cine Potxolos</h2>
+    <p class="inv-txt" id="invTxt">Instálala y la tendrás en la pantalla de inicio, con su icono, como una app más.</p>
+    <button class="btn btn-main" id="invGo" disabled>Preparando…</button>
+    <button class="inv-skip" id="invSkip">Ahora no, entrar al videoclub</button>
+  </div>
+</div>
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-label="Ajustes" aria-hidden="true">
   <div class="dr-head"><h2>Ajustes</h2>
@@ -397,7 +424,8 @@ body:not(.v-juntas) .j-only{display:none!important}
   <section id="installSec">
     <h3>Tenerla como app</h3>
     <p class="help" id="installHelp"></p>
-    <div class="btns"><button class="btn" id="btnInstall2" hidden>Instalar en este dispositivo</button></div>
+    <div class="btns"><button class="btn" id="btnInstall2" hidden>Instalar en este dispositivo</button><button class="btn" id="btnShareInstall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 14v6h14v-6"/></svg>Mandar enlace para instalar</button></div>
+    <p class="msg" id="shareMsg"></p>
   </section>
   <section>
     <h3>Letterboxd</h3>
@@ -1131,9 +1159,40 @@ function installUI(){
     :can?"Tocad el botón para añadirla a la pantalla de inicio o al escritorio, con su icono y sin la barra del navegador."
     :"En Android, abrid el menú ⋮ de Chrome y elegid «Instalar app» o «Añadir a pantalla de inicio». En el ordenador, Chrome y Edge muestran un icono de instalar en la barra de direcciones.";
 }
-async function doInstall(){ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; installUI(); }
-addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; installUI(); });
-addEventListener("appinstalled",()=>{ installEvt=null; installUI(); });
+async function doInstall(){ if(!installEvt) return; const ev=installEvt; ev.prompt(); let out=""; try{ out=(await ev.userChoice).outcome; }catch(e){} installEvt=null; installUI(); if(out==="accepted") invDone(); else invUI(); }
+addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; installUI(); invUI(); });
+addEventListener("appinstalled",()=>{ installEvt=null; installUI(); invDone(); });
+
+/* invite card: opened by links ending in #instalar */
+let invWait=false, invOk=false;
+function invUI(){
+  if($("#invite").hidden||invOk) return;
+  const go=$("#invGo"), t=$("#invTxt");
+  if(installEvt){ go.disabled=false; go.textContent="Instalar"; go.hidden=false; t.innerHTML="Instálala y la tendrás en la pantalla de inicio, con su icono, como una app más. <b>Es un toque.</b>"; }
+  else if(isIOS){ go.hidden=true; t.innerHTML="En iPhone se instala a mano: toca el botón <b>Compartir</b> (el cuadrado con la flecha) y elige <b>«Añadir a pantalla de inicio»</b>."; }
+  else if(!invWait){ go.hidden=true; t.innerHTML="Abre el menú <b>⋮</b> de Chrome (arriba a la derecha) y elige <b>«Instalar app»</b> o <b>«Añadir a pantalla de inicio»</b>."; }
+}
+function invDone(){ if($("#invite").hidden) return; invOk=true; $("#invGo").hidden=true; $("#invTxt").innerHTML="<b>¡Instalada!</b> Ya la tienes en la pantalla de inicio. A partir de ahora entra desde el icono."; $("#invSkip").textContent="Entrar al videoclub"; }
+function invClose(){ $("#invite").hidden=true; document.documentElement.style.overflow=""; if(location.hash==="#instalar") history.replaceState(null,"",location.pathname+location.search); }
+function invOpen(){
+  if(standalone()){ invClose(); return; }
+  $("#invite").hidden=false; document.documentElement.style.overflow="hidden";
+  invWait=!installEvt&&!isIOS; invUI();
+  if(invWait) setTimeout(()=>{ invWait=false; invUI(); },4000);
+  setTimeout(()=>{ (installEvt?$("#invGo"):$("#invSkip")).focus(); },50);
+}
+$("#invGo").onclick=doInstall; $("#invSkip").onclick=invClose;
+addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#invite").hidden) invClose(); });
+if(location.hash==="#instalar") invOpen();
+addEventListener("hashchange",()=>{ if(location.hash==="#instalar") invOpen(); });
+
+/* share the install link */
+$("#btnShareInstall").onclick=async()=>{
+  const url=location.origin+location.pathname+"#instalar", m=$("#shareMsg"); m.classList.remove("err");
+  if(navigator.share){ try{ await navigator.share({title:"Cine Potxolos",text:"Instala nuestro videoclub 🎬",url}); m.textContent=""; return; }catch(e){ if(e.name==="AbortError") return; } }
+  try{ await navigator.clipboard.writeText(url); m.textContent="Enlace copiado. Pégalo en WhatsApp: al abrirlo le saldrá el botón de instalar."; }
+  catch(e){ m.textContent=url; }
+};
 $("#btnInstall").onclick=doInstall; $("#btnInstall2").onclick=doInstall;
 installUI();
 if("serviceWorker" in navigator && location.protocol==="https:") addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
