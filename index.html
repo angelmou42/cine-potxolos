@@ -4,6 +4,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nuestro maratón Marvel</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#203069">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Potxolos">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700;800&family=VT323&display=swap">
@@ -333,6 +341,7 @@ body:not(.v-juntas) .j-only{display:none!important}
       <div class="read"><span class="lbl">fase</span><span class="digits" id="cPhase" aria-hidden="true"></span><span class="sr" id="cPhaseSr"></span></div>
     </div>
     <div class="keys">
+      <button class="key" id="btnInstall" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="kl">Instalar</span></button>
       <button class="key" id="openSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="kl">Ajustes</span></button>
     </div>
   </section>
@@ -384,6 +393,11 @@ body:not(.v-juntas) .j-only{display:none!important}
   <section>
     <h3>Qué hay en la estantería</h3>
     <label class="switch"><input type="checkbox" id="inOpt"><span><b>Extras opcionales</b><small>Series de Netflix (Daredevil, Jessica Jones, Luke Cage, Iron Fist, The Defenders, The Punisher) y películas de Spider-Man de Sony (Venom, Morbius…), cada una en su sitio de la cronología.</small></span></label>
+  </section>
+  <section id="installSec">
+    <h3>Tenerla como app</h3>
+    <p class="help" id="installHelp"></p>
+    <div class="btns"><button class="btn" id="btnInstall2" hidden>Instalar en este dispositivo</button></div>
   </section>
   <section>
     <h3>Letterboxd</h3>
@@ -1104,6 +1118,25 @@ function doImport(txt){
 }
 $("#btnImport").onclick=()=>doImport($("#inImport").value);
 $("#inFile").onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>doImport(String(r.result)); r.readAsText(f); e.target.value=""; };
+
+/* ===================== INSTALL (PWA) ===================== */
+let installEvt=null;
+const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+function installUI(){
+  const can=!!installEvt&&!standalone();
+  $("#btnInstall").hidden=!can; $("#btnInstall2").hidden=!can;
+  $("#installHelp").textContent=standalone()?"Ya la tenéis instalada en este dispositivo. Se actualiza sola."
+    :isIOS?"En iPhone o iPad: abrid esta página en Safari, tocad el botón Compartir (el cuadrado con la flecha) y elegid «Añadir a pantalla de inicio». Saldrá con su icono, como una app más."
+    :can?"Tocad el botón para añadirla a la pantalla de inicio o al escritorio, con su icono y sin la barra del navegador."
+    :"En Android, abrid el menú ⋮ de Chrome y elegid «Instalar app» o «Añadir a pantalla de inicio». En el ordenador, Chrome y Edge muestran un icono de instalar en la barra de direcciones.";
+}
+async function doInstall(){ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; installUI(); }
+addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; installUI(); });
+addEventListener("appinstalled",()=>{ installEvt=null; installUI(); });
+$("#btnInstall").onclick=doInstall; $("#btnInstall2").onclick=doInstall;
+installUI();
+if("serviceWorker" in navigator && location.protocol==="https:") addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 
 /* ===================== BOOT ===================== */
 const saved=lsRead(); if(saved) S=sanitize(saved);

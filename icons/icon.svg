@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- full-bleed carpet so the maskable crop never shows a gap -->
+  <rect width="512" height="512" fill="#203069"/>
+  <!-- VHS cassette, kept inside the 80% safe zone -->
+  <g transform="translate(256 262) rotate(-8)">
+    <rect x="-176" y="-112" width="352" height="224" rx="16" fill="#17171a"/>
+    <rect x="-176" y="-112" width="352" height="224" rx="16" fill="none" stroke="#2a2b31" stroke-width="6"/>
+    <!-- sign-style label: phase bands over off-white paper -->
+    <rect x="-150" y="-92" width="300" height="92" rx="6" fill="#f0f2ea"/>
+    <rect x="-150" y="-92" width="110" height="14" fill="#ff6b2c"/>
+    <rect x="-40" y="-92" width="90" height="14" fill="#ff5fa2"/>
+    <rect x="50" y="-92" width="100" height="14" fill="#ffd23f"/>
+    <rect x="-150" y="-14" width="110" height="14" fill="#ff6b2c"/>
+    <rect x="-40" y="-14" width="90" height="14" fill="#ff5fa2"/>
+    <rect x="50" y="-14" width="100" height="14" fill="#ffd23f"/>
+    <path d="M0 -66 c-16 -22 -50 -12 -44 14 c4 16 26 30 44 44 c18 -14 40 -28 44 -44 c6 -26 -28 -36 -44 -14z" fill="#ff5fa2"/>
+    <!-- window with reels -->
+    <rect x="-120" y="22" width="240" height="66" rx="33" fill="#0b0c0e"/>
+    <circle cx="-68" cy="55" r="26" fill="#f0f2ea"/><circle cx="-68" cy="55" r="9" fill="#17171a"/>
+    <circle cx="68" cy="55" r="26" fill="#f0f2ea"/><circle cx="68" cy="55" r="9" fill="#17171a"/>
+    <rect x="-42" y="40" width="84" height="30" fill="#2a2b31"/>
+  </g>
+</svg>
