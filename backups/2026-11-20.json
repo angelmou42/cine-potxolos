@@ -1,5 +1,18 @@
 {
- "juegos": null,
+ "juegos": {
+  "g-it-takes-two-video-game": {
+   "at": 1795171273648,
+   "d": "2026-11-20",
+   "ex": "It Takes Two es un videojuego de plataformas cooperativo desarrollado por Hazelight Studios y publicado por Electronic Arts. El videojuego se lanzó para PlayStation 4, PlayStation 5, Windows, Xbox One y Xbox Series X/S en marzo de 2021 y se lanzó para Nintendo Switch en noviembre de 2022.",
+   "gen": "acción-aventura, videojuego de plataformas",
+   "img": "https://cdn.cloudflare.steamstatic.com/steam/apps/1426210/library_600x900.jpg",
+   "img2": "https://upload.wikimedia.org/wikipedia/en/a/aa/It_Takes_Two_cover_art.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail_unscaled",
+   "n": "It Takes Two (video game)",
+   "plat": "Microsoft Windows, PlayStation 4, Xbox Series X|S",
+   "wp": "https://es.wikipedia.org/wiki/It_Takes_Two_(videojuego)",
+   "y": 2021
+  }
+ },
  "letterboxd": [
   {
    "captain-america-the-first-avenger_2011_2026-11-16": {
