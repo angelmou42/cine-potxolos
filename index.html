@@ -288,6 +288,10 @@ body:not(.v-ucm) .ucm-only,body:not(.v-juntas) .j-only,body:not(.v-juegos) .g-on
 .inv-txt b{color:var(--ink)}
 .inv-card .btn{width:100%;justify-content:center;min-height:54px;font-size:20px}
 .inv-card .btn[disabled]{opacity:.55;cursor:default}
+.gate .field{margin:0 0 12px}
+.gate .field input{min-height:52px;font-size:19px;font-family:var(--label);font-weight:700;letter-spacing:.02em}
+.gate .msg{margin:0 0 10px}
+.key-show{font-family:ui-monospace,Consolas,monospace;font-size:15px;font-weight:700;background:#fff;border:2px dashed var(--ink);border-radius:4px;padding:8px 10px;margin:0 0 10px;word-break:break-all}
 .inv-skip{display:block;margin:12px auto 0;background:none;border:0;padding:10px;font-family:var(--label);font-weight:600;font-size:16px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 @keyframes invIn{from{opacity:0;transform:translateY(30px) rotate(4deg)}to{opacity:1;transform:rotate(-1.5deg)}}
 @media (prefers-reduced-motion:reduce){.inv-card{animation:none}}
@@ -438,6 +442,17 @@ body:not(.v-ucm) .ucm-only,body:not(.v-juntas) .j-only,body:not(.v-juegos) .g-on
 
 <div class="phase-sign" id="phaseSign" hidden><div class="ps" id="ps"></div></div>
 
+<div class="invite gate" id="gate" hidden role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <form class="inv-card" id="gateForm" novalidate>
+    <img src="icons/icon-192.png" alt="">
+    <p class="inv-kick">Solo para socios</p>
+    <h2 id="gateTitle">Cine Potxolos</h2>
+    <p class="inv-txt">Escribe el <b>código de socio</b> del videoclub. Solo te lo pedirá esta vez: este móvil lo recordará.</p>
+    <label class="field"><span>Código de socio</span><input id="gateIn" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="palabra-palabra-palabra-1234"></label>
+    <p class="msg" id="gateMsg" role="alert"></p>
+    <button class="btn btn-main" id="gateGo" type="submit">Entrar</button>
+  </form>
+</div>
 <div class="invite" id="invite" hidden role="dialog" aria-modal="true" aria-labelledby="invTitle">
   <div class="inv-card">
     <img src="icons/icon-192.png" alt="">
@@ -470,6 +485,13 @@ body:not(.v-ucm) .ucm-only,body:not(.v-juntas) .j-only,body:not(.v-juegos) .g-on
     <p class="help" id="installHelp"></p>
     <div class="btns"><button class="btn" id="btnInstall2" hidden>Instalar en este dispositivo</button><button class="btn" id="btnShareInstall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 14v6h14v-6"/></svg>Mandar enlace para instalar</button></div>
     <p class="msg" id="shareMsg"></p>
+  </section>
+  <section>
+    <h3>Código de socio</h3>
+    <p class="help">Es la llave de vuestros datos: sin él nadie puede verlos ni cambiarlos. Este móvil ya lo recuerda; solo hace falta en un móvil nuevo. No lo compartáis con nadie más.</p>
+    <p class="key-show" id="keyShow"></p>
+    <div class="btns"><button class="btn" id="keyForget">Olvidarlo en este móvil</button></div>
+    <p class="msg" id="keyMsg"></p>
   </section>
   <section id="pushSec">
     <h3>Avisos</h3>
@@ -515,6 +537,17 @@ body:not(.v-ucm) .ucm-only,body:not(.v-juntas) .j-only,body:not(.v-juegos) .g-on
 </aside>
 
 <script>
+/* ===================== MEMBER CODE ===================== */
+// All the data lives in Firebase under /<code>/; the database rules refuse everything else, and the code never goes in the page.
+const FB_BASE="https://maraton-ucm-default-rtdb.europe-west1.firebasedatabase.app";
+const keyNorm=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const FB_KEY=(()=>{
+  const m=location.hash.match(/(?:^#|&)llave=([^&]+)/);
+  if(m){ const k=keyNorm(decodeURIComponent(m[1])); try{ localStorage.setItem("ucm-llave",k); }catch(e){}
+    history.replaceState(null,"",location.pathname+location.search+(/instalar/.test(location.hash)?"#instalar":"")); }
+  try{ return keyNorm(localStorage.getItem("ucm-llave")); }catch(e){ return ""; }
+})();
+
 /* ===================== DATA ===================== */
 const D = [
 {id:"eyes-wakanda",es:"Ojos de Wakanda",en:"Eyes of Wakanda",t:"s",y:2025,ep:4,em:30,ph:5,w:"1260 a.C.–1896",s:"Serie animada de antología: guerreros wakandianos recorren la historia para recuperar artefactos de vibranium antes de que caigan en malas manos."},
@@ -1200,7 +1233,7 @@ document.addEventListener("change",e=>{ if(e.target.matches("[data-gdate],[data-
 
 /* ===================== PERSISTENCE ===================== */
 /* Shared store: Firebase Realtime Database (REST + live stream). Empty = not configured. */
-const FIREBASE_URL = "https://maraton-ucm-default-rtdb.europe-west1.firebasedatabase.app";
+const FIREBASE_URL = FB_KEY ? FB_BASE+"/"+FB_KEY : "";
 const FB_NODE = "maraton";
 let db=null, docRef=null, syncMode="local", saveTimer=null, saving=false, pendingSave=false;
 let fbOn=false, fbTree=null, fbSent={}, fbTimer=null, fbBusy=false, fbAgain=false, fbAdoptT=null;
@@ -1283,7 +1316,7 @@ async function pushRemote(){
 function setSync(mode){
   syncMode=mode;
   $("#syncHelp").innerHTML={
-    fb:`<span class="sync-dot ok"></span>Compartido. Todo se guarda en la web: cualquiera que abra este enlace ve y cambia el mismo progreso, al momento.`,
+    fb:`<span class="sync-dot ok"></span>Compartido. Todo se guarda en la web, protegido con vuestro código de socio: lo que cambia uno lo ve el otro al momento.`,
     ok:`<span class="sync-dot ok"></span>Sincronizado. El progreso se guarda en la web y lo veis igual desde cualquier dispositivo donde abráis este enlace con vuestra cuenta.`,
     wait:`<span class="sync-dot"></span>Conectando con el guardado compartido…`,
     local:`<span class="sync-dot local"></span>Guardado solo en este navegador. Para pasarlo a otro dispositivo, descargad una copia o copiad el código e importadlo allí.`,
@@ -1470,9 +1503,9 @@ addEventListener("hashchange",()=>{ if(location.hash==="#instalar") invOpen(); }
 
 /* share the install link */
 $("#btnShareInstall").onclick=async()=>{
-  const url=location.origin+location.pathname+"#instalar", m=$("#shareMsg"); m.classList.remove("err");
+  const url=location.origin+location.pathname+"#instalar"+(FB_KEY?"&llave="+FB_KEY:""), m=$("#shareMsg"); m.classList.remove("err");
   if(navigator.share){ try{ await navigator.share({title:"Cine Potxolos",text:"Instala nuestro videoclub 🎬",url}); m.textContent=""; return; }catch(e){ if(e.name==="AbortError") return; } }
-  try{ await navigator.clipboard.writeText(url); m.textContent="Enlace copiado. Pégalo en WhatsApp: al abrirlo le saldrá el botón de instalar."; }
+  try{ await navigator.clipboard.writeText(url); m.textContent="Enlace copiado. Pégalo en WhatsApp: lleva dentro el código de socio, así que al abrirlo entra directa y le sale el botón de instalar."; }
   catch(e){ m.textContent=url; }
 };
 $("#btnInstall2").onclick=doInstall;
@@ -1523,10 +1556,34 @@ $("#pushOff").onclick=async()=>{
 pushUI();
 if(pushOK()) navigator.serviceWorker.getRegistration().then(r=>r&&r.pushManager.getSubscription()).then(sub=>{
   if(!sub) return; pushSub=sub; pushUI();
-  if(pushMe!==null) pushSave(false).catch(()=>{}); // keeps the subscription listed even if it was cleared
+  if(pushMe!==null&&FB_KEY) pushSave(false).catch(()=>{}); // keeps the subscription listed even if it was cleared
 }).catch(()=>{});
+
+/* ===================== MEMBER GATE ===================== */
+$("#keyShow").textContent=FB_KEY||"—";
+$("#keyForget").onclick=()=>{
+  if($("#keyForget").dataset.sure!=="1"){ $("#keyForget").dataset.sure="1"; $("#keyForget").textContent="Toca otra vez para olvidarlo"; msg("#keyMsg","Después tendrás que volver a escribirlo para entrar.",true); return; }
+  try{ localStorage.removeItem("ucm-llave"); }catch(e){} location.reload();
+};
+function gateOpen(){
+  $("#gate").hidden=false; document.documentElement.style.overflow="hidden";
+  setTimeout(()=>$("#gateIn").focus(),60);
+  $("#gateForm").onsubmit=async e=>{
+    e.preventDefault(); const k=keyNorm($("#gateIn").value);
+    if(k.length<8){ msg("#gateMsg","Escríbelo entero, con sus palabras y su número.",true); return; }
+    $("#gateGo").disabled=true; msg("#gateMsg","Comprobando…");
+    try{
+      const r=await fetch(FB_BASE+"/"+k+"/maraton.json?shallow=true");
+      const ok=r.ok&&(await r.json())!==null;
+      if(!ok){ msg("#gateMsg",r.ok||r.status===401?"Ese código no es. Revisa que esté igual, con sus guiones.":"No se ha podido comprobar (HTTP "+r.status+"). Prueba otra vez.",true); $("#gateGo").disabled=false; return; }
+      try{ localStorage.setItem("ucm-llave",k); }catch(e){}
+      msg("#gateMsg","¡Dentro!"); location.reload();
+    }catch(err){ msg("#gateMsg","Sin conexión. Prueba otra vez en un momento.",true); $("#gateGo").disabled=false; }
+  };
+}
 
 /* ===================== BOOT ===================== */
 const saved=lsRead(); if(saved) S=sanitize(saved);
-normalizeReach(); render(); fillSettings(); setView(view); initSync(); gStream();
+normalizeReach(); render(); fillSettings(); setView(view);
+if(FB_KEY){ initSync(); gStream(); } else { setSync("local"); gateOpen(); }
 </script>

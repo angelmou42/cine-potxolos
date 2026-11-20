@@ -1,7 +1,10 @@
 // Shared by the sync scripts: the title list from the page and how Letterboxd titles are matched to it.
 import { readFileSync } from "node:fs";
 
-export const DB = (process.env.FB_DB || "https://maraton-ucm-default-rtdb.europe-west1.firebasedatabase.app").replace(/\/+$/, "");
+// Everything lives under /<member code>/ (secret FB_KEY); the database rules refuse any other path.
+export const KEY = String(process.env.FB_KEY || "").trim();
+if (!KEY) { console.log("Falta el secreto FB_KEY (código de socio): no se hace nada."); process.exit(0); }
+export const DB = (process.env.FB_DB || "https://maraton-ucm-default-rtdb.europe-west1.firebasedatabase.app").replace(/\/+$/, "") + "/" + KEY;
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 export const D = eval(html.match(/const D = (\[[\s\S]*?\n\]);/)[1]);
 

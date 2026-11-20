@@ -16,4 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node sync/restore.mjs "${{ inputs.fecha }}"
+      - run: node sync/restore.mjs "$FECHA"
+        env:
+          FECHA: ${{ inputs.fecha }}
+          FB_KEY: ${{ secrets.FB_KEY }}
