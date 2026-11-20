@@ -169,8 +169,30 @@ button{cursor:pointer}
 .aisle small{font-family:var(--label);font-weight:700;font-size:14px;color:var(--ink-2)}
 .aisle[aria-pressed="true"]{background:var(--yellow);transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
 .aisle:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
-body.v-juntas .ucm-only{display:none!important}
-body:not(.v-juntas) .j-only{display:none!important}
+body:not(.v-ucm) .ucm-only,body:not(.v-juntas) .j-only,body:not(.v-juegos) .g-only{display:none!important}
+.aisle .xs{display:none}
+@media (max-width:560px){.aisle .xl{display:none}.aisle .xs{display:inline}}
+.spine.gm{--pc:var(--f5)}
+/* games: add box with autocomplete */
+.g-add{position:relative;margin:2px 0 20px;max-width:640px}
+.g-add .ico{position:absolute;left:14px;top:50%;width:22px;height:22px;transform:translateY(-50%);color:var(--ink-2);pointer-events:none}
+.g-add input{width:100%;min-height:54px;border:0;border-radius:4px;background:var(--paper);color:var(--ink);padding:0 16px 0 46px;font-family:var(--body);font-size:17px;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.g-add input::placeholder{color:var(--ink-2)}
+.g-add input:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.g-res{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:20;margin:0;padding:6px;list-style:none;background:var(--paper);color:var(--ink);border-radius:6px;box-shadow:0 24px 48px -12px rgba(0,0,0,.7);max-height:min(62vh,460px);overflow:auto}
+.g-res[hidden]{display:none}
+.g-res button{display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;align-items:center;width:100%;min-height:64px;padding:6px 8px 6px 6px;border:0;border-radius:4px;background:none;color:var(--ink);text-align:left;cursor:pointer}
+.g-res button:hover,.g-res button.act{background:var(--paper-2)}
+.g-res img,.g-res .ph{width:46px;height:60px;object-fit:cover;border-radius:2px;background:#c9ccc0;display:block}
+.g-res b{display:block;font-weight:700;font-size:16px;line-height:1.15;overflow-wrap:anywhere}
+.g-res small{display:block;color:var(--ink-2);font-size:13.5px;margin-top:2px}
+.g-res .info{padding:12px 10px;color:var(--ink-2);font-size:14.5px}
+.ficha input[data-ghours]{width:5.5em;background:transparent;border:0;border-bottom:2px solid var(--ink);border-radius:0;padding:2px 0;color:var(--ink);font-family:var(--label);font-weight:700;font-size:17px}
+.g-del{justify-self:start;background:none;border:0;padding:6px 0;font-family:var(--label);font-weight:700;font-size:15px;color:#9a3a22;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.g-del.sure{color:#fff;background:#b3261e;padding:6px 12px;border-radius:999px;text-decoration:none}
+.g-more{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 18px;margin:0}
+.g-more dt{font-family:var(--label);font-weight:600;font-size:13px;color:var(--ink-2)}
+.g-more dd{margin:0;font-weight:600;font-size:15px;line-height:1.3}
 .spine.jt{--pc:var(--pink)}
 .j-hide{display:none!important}
 .spine.jt .band{font-size:12px}
@@ -351,6 +373,7 @@ body:not(.v-juntas) .j-only{display:none!important}
       <h1 id="mTitle">Nuestro maratón Marvel</h1>
       <p class="ucm-only">Todo el universo Marvel en el orden en que pasa la historia. Una cinta cada vez.</p>
       <p class="j-only">Las pelis que vemos juntos, con lo que puntúa cada uno en Letterboxd.</p>
+      <p class="g-only">Los videojuegos que terminamos juntos, con la nota de cada uno.</p>
     </div></div>
     <div class="carnet" id="carnet"></div>
   </header>
@@ -359,18 +382,18 @@ body:not(.v-juntas) .j-only{display:none!important}
     <div class="screen">
       <svg class="play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg>
       <div class="read"><span class="digits" id="cCount" aria-hidden="true"></span><span class="lbl" id="cCountL">vistas</span><span class="sr" id="cCountSr"></span></div>
-      <div class="read"><span class="digits" id="cHours" aria-hidden="true"></span><span class="lbl">horas juntos</span><span class="sr" id="cHoursSr"></span></div>
+      <div class="read"><span class="digits" id="cHours" aria-hidden="true"></span><span class="lbl" id="cHoursL">horas juntos</span><span class="sr" id="cHoursSr"></span></div>
       <div class="read"><span class="lbl">fase</span><span class="digits" id="cPhase" aria-hidden="true"></span><span class="sr" id="cPhaseSr"></span></div>
     </div>
     <div class="keys">
-      <button class="key" id="btnInstall" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="kl">Instalar</span></button>
       <button class="key" id="openSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="kl">Ajustes</span></button>
     </div>
   </section>
 
   <nav class="aisles" aria-label="Secciones">
-    <button class="aisle" data-view="ucm" aria-pressed="true">Maratón Marvel</button>
-    <button class="aisle" data-view="juntas" aria-pressed="false">Vistas juntos <small id="jCountTab"></small></button>
+    <button class="aisle" data-view="ucm" aria-pressed="true"><span class="xl">Maratón </span>Marvel</button>
+    <button class="aisle" data-view="juntas" aria-pressed="false"><span class="xl">Vistas juntos</span><span class="xs">Juntos</span> <small id="jCountTab"></small></button>
+    <button class="aisle" data-view="juegos" aria-pressed="false">Juegos<span class="xl"> terminados</span> <small id="gCountTab"></small></button>
   </nav>
   <main class="ucm-only">
     <div class="shelf-head"><h2>La estantería</h2><p id="shelfHint">Toca una cinta para sacarla.</p></div>
@@ -392,8 +415,24 @@ body:not(.v-juntas) .j-only{display:none!important}
       <div class="board" id="jBoard"></div>
     </section>
   </main>
+  <main class="g-only">
+    <div class="shelf-head"><h2>Juegos terminados</h2><p>Escribid el nombre y elegid el juego: la portada y la ficha se rellenan solas.</p></div>
+    <form class="g-add" id="gAdd" autocomplete="off" role="search" onsubmit="return false">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <label class="sr" for="gAddIn">Añadir un juego terminado</label>
+      <input id="gAddIn" type="search" enterkeyhint="search" placeholder="Añadir un juego terminado…" role="combobox" aria-expanded="false" aria-controls="gAddRes" aria-autocomplete="list">
+      <ul class="g-res" id="gAddRes" role="listbox" aria-label="Juegos encontrados" hidden></ul>
+    </form>
+    <section class="shelf" id="gShelf" aria-label="Juegos terminados"></section>
+    <p class="end" id="gEmpty" hidden></p>
+    <section class="counter" id="gCounter" aria-live="polite"></section>
+    <section class="charts" aria-labelledby="gchH">
+      <div class="shelf-head"><h2 id="gchH">Lo más valorado</h2><p>Toca uno para sacarlo al mostrador.</p></div>
+      <div class="board" id="gBoard"></div>
+    </section>
+  </main>
   <footer>
-    <p class="credits">Carátulas: Marvel Studios, Sony Pictures y Netflix, vía Wikipedia. Uso personal, sin ánimo de lucro.</p>
+    <p class="credits">Carátulas: Marvel Studios, Sony Pictures y Netflix, vía Wikipedia. Portadas y fichas de juegos: Wikipedia, Wikidata y Steam. Uso personal, sin ánimo de lucro.</p>
   </footer>
 </div>
 
@@ -637,10 +676,10 @@ const ICON={
 };
 function posterImg(d,cls=""){ return POSTER[d.id]?`<img src="posters/${POSTER[d.id]}" alt="" ${cls} decoding="async">`:""; }
 const fmtScore=v=>(Math.round(v*100)/100).toLocaleString("es-ES",{maximumFractionDigits:2});
-function starsHTML(id,who,val,label){
+function starsHTML(id,who,val,label,attr="star"){
   let h=`<span class="stars" role="group" aria-label="Puntuación de ${esc(label)}">`;
   for(let k=1;k<=5;k++){ const cls=val>=k?"on":val>=k-.5?"half":"";
-    h+=`<span class="st ${cls}">${ICON.star}<span class="fill">${ICON.star}</span><button type="button" class="hl" data-star="${id}|${who}|${k-.5}" aria-label="${fmtScore(k-.5)} de 5" aria-pressed="${val===k-.5}"></button><button type="button" class="hr" data-star="${id}|${who}|${k}" aria-label="${k} de 5" aria-pressed="${val===k}"></button></span>`; }
+    h+=`<span class="st ${cls}">${ICON.star}<span class="fill">${ICON.star}</span><button type="button" class="hl" data-${attr}="${id}|${who}|${k-.5}" aria-label="${fmtScore(k-.5)} de 5" aria-pressed="${val===k-.5}"></button><button type="button" class="hr" data-${attr}="${id}|${who}|${k}" aria-label="${k} de 5" aria-pressed="${val===k}"></button></span>`; }
   return h+`<span class="rv" aria-hidden="true">${val?fmtScore(val):"–"}</span></span>`;
 }
 function numOf(id){ return visibleList().findIndex(x=>x.id===id)+1; }
@@ -732,8 +771,9 @@ function renderCharts(){
 }
 /* ===================== VISTAS JUNTOS (Letterboxd, same day) ===================== */
 let LB=[{},{}], view="ucm", jSel=null, jTab=2, jAll=false;
-try{ if(localStorage.getItem("ucm-view")==="juntas") view="juntas"; }catch(e){}
+try{ const v=localStorage.getItem("ucm-view"); if(v==="juntas"||v==="juegos") view=v; }catch(e){}
 if(location.hash==="#juntos") view="juntas";
+if(location.hash==="#juegos") view="juegos";
 const lbImg=u=>typeof u==="string"&&/^https:\/\/a\.ltrbxd\.com\//.test(u)?u:"";
 function juntas(){
   const by=o=>{ const m={}; for(const id in (o||{})){ const e=o[id]; if(!e||!e.t||!e.d) continue; const k=lbNorm(e.t)+"|"+e.y; (m[k]||(m[k]=[])).push(e); } return m; };
@@ -748,7 +788,7 @@ function juntas(){
     const [ea,eb]=pairs[pairs.length-1], day=ea.d<eb.d?ea.d:eb.d;
     const common=[...new Set(pairs.map(p=>p[0].d<p[1].d?p[0].d:p[1].d))];
     if(lbMatch(ea.t,ea.y)) continue; // Marvel titles live in the marathon, not here
-    out.push({id:k.replace(/[^a-z0-9]+/g,"-"), t:ea.t, y:ea.y, d:day, times:common.length, img:lbImg(ea.img)||lbImg(eb.img),
+    out.push({id:k.replace(/[^a-z0-9]+/g,"-"), t:ea.t, y:ea.y, d:day, times:common.length, m:Math.max(0,+(ea.m||eb.m)||0), img:lbImg(ea.img)||lbImg(eb.img),
       r:[rv(ea.r),rv(eb.r)], rv:[String(ea.rv||""),String(eb.rv||"")], lk:[String(ea.lk||""),String(eb.lk||"")]});
   }
   return out.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:x.t.localeCompare(y.t));
@@ -758,6 +798,7 @@ function starsRO(val,label){
   for(let k=1;k<=5;k++){ const cls=val>=k?"on":val>=k-.5?"half":""; h+=`<span class="st ${cls}" aria-hidden="true">${ICON.star}<span class="fill">${ICON.star}</span></span>`; }
   return h+`<span class="rv" aria-hidden="true">${val?fmtScore(val):"–"}</span></span>`;
 }
+const fmtMin=m=>{ const h=Math.floor(m/60), r=m%60; return h?`${h} h${r?` ${r} min`:""}`:`${r} min`; };
 const jAvg=x=>x.r[0]>0&&x.r[1]>0?(x.r[0]+x.r[1])/2:0;
 function renderJuntas(anim){
   const list=juntas();
@@ -785,7 +826,7 @@ function renderJuntas(anim){
         <h2 class="dup">${esc(x.t)}</h2>
         <dl class="specs">
           <div><dt>La visteis el</dt><dd>${esc(fmtDate(x.d))}${x.times>1?` · ${x.times} veces`:""}</dd></div>
-          <div><dt>Estreno</dt><dd>${x.y}</dd></div>
+          <div><dt>${x.m?"Dura":"Estreno"}</dt><dd>${x.m?fmtMin(x.m):x.y}</dd></div>
           <div><dt>Juntos</dt><dd>${a?`★ ${fmtScore(a)}`:"–"}</dd></div>
         </dl>
         ${links?`<div class="lk-row">${links}</div>`:""}
@@ -815,11 +856,206 @@ function renderJuntas(anim){
   const foot=(missing||rows.length>10)?`<div class="foot"><span>${missing?`${missing} sin la nota ${esc(who)}.`:""}</span>${rows.length>10?`<button class="more" data-jmore>${jAll?"Ver solo las 10 primeras":`Ver las ${rows.length}`}</button>`:""}</div>`:"";
   $("#jBoard").innerHTML=tabs+(rows.length?`<ol>${li}</ol>`:empty)+foot;
 }
+/* ===================== JUEGOS TERMINADOS ===================== */
+// Own Firebase node ("juegos"), written path by path, so older open copies of the page never touch it.
+let G={}, gSel=null, gTab=2, gAll=false, gHits=[], gSure=null;
+const gURL=path=>FIREBASE_URL.replace(/\/+$/,"")+"/juegos"+(path?"/"+path:"")+".json";
+const httpsOr=u=>typeof u==="string"&&/^https:\/\/[^\s"'<>]+$/.test(u)?u.slice(0,600):"";
+function gClean(o){
+  const out={}; if(!o||typeof o!=="object") return out;
+  for(const id in o){ const v=o[id]; if(!/^g-[a-z0-9-]{1,90}$/.test(id)||!v||typeof v!=="object"||!v.n) continue;
+    const x={n:String(v.n).slice(0,120),at:Number(v.at)||0};
+    for(const k of ["dev","gen","plat"]) if(v[k]) x[k]=String(v[k]).slice(0,160);
+    if(v.ex) x.ex=String(v.ex).slice(0,900);
+    for(const k of ["img","img2","wp"]){ const u=httpsOr(v[k]); if(u) x[k]=u; }
+    if(+v.y>1950&&+v.y<2100) x.y=+v.y;
+    if(typeof v.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.d)) x.d=v.d;
+    const h=Math.round((Number(v.h)||0)*2)/2; if(h>0&&h<10000) x.h=h;
+    if(v.r&&typeof v.r==="object") x.r=[rv(v.r[0]),rv(v.r[1])];
+    if(v.rv&&typeof v.rv==="object") x.rv=[String(v.rv[0]||"").slice(0,4000),String(v.rv[1]||"").slice(0,4000)];
+    out[id]=x; }
+  return out;
+}
+try{ G=gClean(JSON.parse(localStorage.getItem("ucm-juegos")||"{}")); }catch(e){}
+const gSave=()=>{ try{ localStorage.setItem("ucm-juegos",JSON.stringify(G)); }catch(e){} };
+const gList=()=>Object.entries(G).map(([id,g])=>({id,...g})).sort((a,b)=>(a.d||"9")<(b.d||"9")?-1:(a.d||"9")>(b.d||"9")?1:a.at-b.at);
+const gAvg=g=>{ const r=g.r||[0,0]; return r[0]>0&&r[1]>0?(r[0]+r[1])/2:0; };
+async function gWrite(path,val){
+  try{ const r=await fetch(gURL(path),val===null?{method:"DELETE"}:{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(val)}); if(!r.ok) throw r.status; }
+  catch(e){ setSync("error"); }
+}
+function gSet(id,path,val){ // local first, then the web
+  const g=G[id]; if(!g) return; const ks=path.split("/");
+  if(ks.length===2){ const arr=g[ks[0]]?[...g[ks[0]]]:(ks[0]==="r"?[0,0]:["",""]); arr[+ks[1]]=val; g[ks[0]]=arr; } else if(val===null) delete g[path]; else g[path]=val;
+  gSave(); gWrite(`${id}/${path}`,val===""?null:val);
+}
+const gTimers={}; function gSetLater(id,path,val){ clearTimeout(gTimers[id+path]); gTimers[id+path]=setTimeout(()=>gSet(id,path,val),700); }
+function gStream(){
+  let tree=null, t=null;
+  fetch(gURL("")).then(r=>r.ok?r.json():Promise.reject(r.status)).then(d=>{ tree=d; G=gClean(d); gSave(); gRefresh(); }).catch(()=>{});
+  try{
+    const es=new EventSource(gURL(""));
+    const set=(path,data)=>{ const ks=path.split("/").filter(Boolean); if(!ks.length){ tree=data; return; }
+      if(!tree||typeof tree!=="object") tree={}; let o=tree; for(let i=0;i<ks.length-1;i++){ if(!o[ks[i]]||typeof o[ks[i]]!=="object") o[ks[i]]={}; o=o[ks[i]]; }
+      if(data===null) delete o[ks[ks.length-1]]; else o[ks[ks.length-1]]=data; };
+    const on=ev=>{ try{ const m=JSON.parse(ev.data); if(!m) return;
+      if(ev.type==="put") set(m.path,m.data); else for(const k in m.data) set(m.path.replace(/\/$/,"")+"/"+k,m.data[k]);
+      clearTimeout(t); t=setTimeout(()=>{ G=gClean(tree); gSave(); gRefresh(); },120); }catch(e){} };
+    es.addEventListener("put",on); es.addEventListener("patch",on);
+  }catch(e){}
+}
+function gRefresh(){
+  const ae=document.activeElement;
+  if(ae&&ae.matches("[data-grv],[data-gdate],[data-ghours],#gAddIn")){ $("#gCountTab").textContent=Object.keys(G).length||""; if(view==="juegos") renderChrome(); return; }
+  renderGames(); if(view==="juegos") renderChrome();
+}
+function gCover(g,extra=""){
+  const src=g.img||g.img2; if(!src) return "";
+  return `<img src="${esc(src)}" ${g.img&&g.img2?`data-alt="${esc(g.img2)}"`:""} alt="" ${extra} decoding="async" referrerpolicy="no-referrer">`;
+}
+document.addEventListener("error",e=>{ const im=e.target; if(!(im instanceof HTMLImageElement)) return;
+  if(im.dataset.alt){ im.src=im.dataset.alt; delete im.dataset.alt; }
+  else if(im.closest("#gCounter .front")){ const g=G[gSel]; im.outerHTML=`<div class="noimg">${esc(g?g.n:"")}</div>`; }
+  else if(im.closest(".g-only,.g-res")) im.remove(); },true);
+function renderGames(anim){
+  const list=gList();
+  $("#gCountTab").textContent=list.length?String(list.length):"";
+  if(view!=="juegos") return;
+  if(!list.some(g=>g.id===gSel)) gSel=list.length?list[list.length-1].id:null;
+  $("#gShelf").innerHTML=list.map((g,i)=>{ const a=gAvg(g);
+    return `<button class="spine gm ${g.id===gSel?"sel":""}" data-gpick="${g.id}" aria-label="${esc(g.n)}${g.d?`, terminado el ${fmtDate(g.d)}`:""}" aria-pressed="${g.id===gSel}">
+      <span class="sl"><span class="band">${a?fmtScore(a):"▶"}</span><span class="win">${gCover(g,'loading="lazy"')}</span><span class="t ${g.n.length>34?"s3":g.n.length>22?"s2":""}">${esc(g.n)}</span><span class="n">${String(i+1).padStart(2,"0")}</span></span></button>`; }).join("");
+  const sh=$("#gShelf"), sel=sh.querySelector(".spine.sel"); if(sel && sh.scrollWidth>sh.clientWidth) sh.scrollLeft=sel.offsetLeft-sh.clientWidth/2+sel.offsetWidth/2;
+  const em=$("#gEmpty"); em.hidden=!!list.length; em.textContent="Todavía no hay ninguno. Escribid arriba el nombre del primer juego que hayáis terminado juntos.";
+  const g=list.find(z=>z.id===gSel), el=$("#gCounter");
+  if(!g){ el.innerHTML=""; }
+  else {
+    const num=String(list.indexOf(g)+1).padStart(2,"0"), a=gAvg(g), r=g.r||[0,0], rvs=g.rv||["",""];
+    const front=gCover(g)||`<div class="noimg">${esc(g.n)}</div>`;
+    const more=[["Estudio",g.dev],["Plataformas",g.plat],["Género",g.gen]].filter(x=>x[1]);
+    el.innerHTML=`
+    <article class="box ${anim==="pull"?"pull":""}" style="--pc:var(--f5)" aria-label="${esc(g.n)}">
+      <div class="front">${front}<div class="hinge"><b aria-hidden="true">▶</b><span>Terminado</span><i>nº ${num}</i></div><div class="sticker"><b>FIN</b><small>${esc(fmtDate(g.d))}</small></div></div>
+      <div class="mhead"><h2>${esc(g.n)}</h2></div>
+      <div class="back">
+        <h2 class="dup">${esc(g.n)}</h2>
+        <dl class="specs">
+          <div><dt>Lanzamiento</dt><dd>${g.y||"–"}</dd></div>
+          <div><dt>Horas</dt><dd>${g.h?fmtScore(g.h):"–"}</dd></div>
+          <div><dt>Juntos</dt><dd>${a?`★ ${fmtScore(a)}`:"–"}</dd></div>
+        </dl>
+        ${more.length?`<dl class="g-more">${more.map(x=>`<div><dt>${x[0]}</dt><dd>${esc(x[1])}</dd></div>`).join("")}</dl>`:""}
+        ${g.ex?`<p class="syn">${esc(g.ex)}</p>`:""}
+        ${g.wp?`<div class="lk-row"><a class="link" href="${esc(g.wp)}" target="_blank" rel="noopener noreferrer">Ver en Wikipedia</a></div>`:""}
+        <div class="ficha">
+          <h3>Ficha de la partida</h3>
+          <div class="f-row"><label for="gd-${g.id}">Lo terminamos el</label><input type="date" id="gd-${g.id}" data-gdate="${g.id}" value="${esc(g.d||"")}"></div>
+          <div class="f-row"><label for="gh-${g.id}">Horas jugadas</label><input type="text" id="gh-${g.id}" data-ghours="${g.id}" inputmode="decimal" maxlength="7" value="${g.h?fmtScore(g.h):""}" placeholder="0"></div>
+          <div class="rates">${[0,1].map(w=>{ const nm=w?nameB():nameA();
+            return `<div class="rate-col"><span class="rate">${esc(nm)} ${starsHTML(g.id,w,r[w],nm,"gstar")}</span>
+              <label class="sr" for="grv-${g.id}-${w}">Reseña de ${esc(nm)}</label><textarea id="grv-${g.id}-${w}" data-grv="${g.id}|${w}" maxlength="4000" placeholder="Reseña de ${esc(nm)}…">${esc(rvs[w]||"")}</textarea></div>`; }).join("")}</div>
+          <button type="button" class="g-del ${gSure===g.id?"sure":""}" data-gdel="${g.id}">${gSure===g.id?"¿Seguro? Toca otra vez para quitarlo":"Quitar de la lista"}</button>
+        </div>
+      </div>
+    </article>`;
+    const im=el.querySelector(".front img");
+    if(im){ const mark=()=>el.querySelector(".front")?.classList.toggle("wide",im.naturalWidth>im.naturalHeight*1.05); if(im.complete&&im.naturalWidth) mark(); else im.addEventListener("load",mark,{once:true}); }
+  }
+  const names=[nameA(),nameB(),"Juntos"], rows=[]; let missing=0;
+  for(const z of list){ const zr=z.r||[0,0]; if(gTab<2){ if(zr[gTab]>0) rows.push({z,v:zr[gTab]}); else missing++; } else { const v=gAvg(z); if(v) rows.push({z,v}); else missing++; } }
+  rows.sort((p,q)=>q.v-p.v || ((p.z.d||"")<(q.z.d||"")?1:-1));
+  let rank=0,prev=null; rows.forEach((x,i)=>{ if(x.v!==prev){rank=i+1;prev=x.v;} x.rank=rank; });
+  const tabs=`<div class="tabs" role="group" aria-label="Lista de">${names.map((n,i)=>`<button class="key ${i===gTab?"on":""}" data-gtab="${i}" aria-pressed="${i===gTab}">${esc(n)}</button>`).join("")}</div>`;
+  const shown=gAll?rows:rows.slice(0,10);
+  const li=shown.map(x=>`<li><button class="row" data-gpick="${x.z.id}" style="--pc:var(--f5)" aria-label="${x.rank}. ${esc(x.z.n)}, ${fmtScore(x.v)} de 5">
+      <span class="rk ${x.rank<=3?"top":""}">${x.rank}</span><span class="th">${gCover(x.z,'loading="lazy"')}</span>
+      <span class="tt"><b>${esc(x.z.n)}</b><small>${[x.z.y,x.z.d?`terminado el ${fmtDate(x.z.d)}`:""].filter(Boolean).join(" · ")}</small></span>
+      <span class="sc">${ICON.star}${fmtScore(x.v)}${gTab===2?`<small>${esc(nameA())} ${fmtScore(x.z.r[0])} · ${esc(nameB())} ${fmtScore(x.z.r[1])}</small>`:""}</span></button></li>`).join("");
+  const who=gTab===2?"de los dos":`de ${names[gTab]}`;
+  const empty=`<p class="empty">${list.length?`Todavía no hay ninguno con la nota ${esc(who)}.`:"Aquí saldrá vuestra lista en cuanto terminéis el primer juego."}</p>`;
+  const foot=(missing||rows.length>10)?`<div class="foot"><span>${missing?`${missing} sin la nota ${esc(who)}.`:""}</span>${rows.length>10?`<button class="more" data-gmore>${gAll?"Ver solo los 10 primeros":`Ver los ${rows.length}`}</button>`:""}</div>`:"";
+  $("#gBoard").innerHTML=tabs+(rows.length?`<ol>${li}</ol>`:empty)+foot;
+}
+/* autocomplete: Wikipedia finds the game, Wikidata fills the sheet, Steam gives the box art when it has it */
+const WP="https://en.wikipedia.org/w/api.php?format=json&origin=*&";
+const gSlug=t=>String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,70)||"juego";
+const gDesc=d=>String(d||"").replace(/^(\d{4}) video game$/i,"Videojuego de $1").replace(/^video game$/i,"Videojuego").replace(/^upcoming video game$/i,"Videojuego por salir");
+let gQ="", gReq=0, gActive=-1;
+async function gSearch(q){
+  const id=++gReq;
+  const url=WP+"action=query&generator=search&gsrlimit=8&prop=pageimages|pageprops|description&piprop=thumbnail&pithumbsize=160&pilicense=any&ppprop=wikibase_item&gsrsearch="+encodeURIComponent(`hastemplate:"Infobox video game" ${q}`);
+  let hits=[];
+  try{ const j=await (await fetch(url)).json(); hits=Object.values(j.query?.pages||{}).sort((a,b)=>a.index-b.index)
+      .map(p=>({title:p.title,desc:gDesc(p.description),thumb:p.thumbnail?.source||"",qid:p.pageprops?.wikibase_item||""})); }
+  catch(e){ if(id===gReq) gShowRes(q,null); return; }
+  if(id!==gReq) return; gHits=hits; gShowRes(q,hits);
+}
+function gShowRes(q,hits){
+  const ul=$("#gAddRes"); gActive=-1;
+  if(!q){ ul.hidden=true; $("#gAddIn").setAttribute("aria-expanded","false"); return; }
+  let h=hits===null?`<li class="info">No se ha podido buscar ahora. Puedes añadirlo igualmente:</li>`:hits.length?"":`<li class="info">No lo encuentro en Wikipedia. Puedes añadirlo igualmente, sin portada:</li>`;
+  (hits||[]).forEach((x,i)=>{ h+=`<li role="option" id="gopt-${i}"><button type="button" data-gadd="${i}">${x.thumb?`<img src="${esc(x.thumb)}" alt="" referrerpolicy="no-referrer">`:`<span class="ph"></span>`}<span><b>${esc(x.title)}</b><small>${esc(x.desc||"Videojuego")}</small></span></button></li>`; });
+  h+=`<li role="option" id="gopt-x"><button type="button" data-gadd="x"><span class="ph"></span><span><b>Añadir «${esc(q)}» tal cual</b><small>Sin ficha automática</small></span></button></li>`;
+  ul.innerHTML=h; ul.hidden=false; $("#gAddIn").setAttribute("aria-expanded","true");
+}
+async function gDetails(hit){
+  const g={n:hit.title.slice(0,120)};
+  try{
+    const pj=await (await fetch(WP+"action=query&prop=pageimages|info&inprop=url&piprop=thumbnail&pithumbsize=600&pilicense=any&titles="+encodeURIComponent(hit.title))).json();
+    const pg=Object.values(pj.query?.pages||{})[0]||{}; if(pg.thumbnail) g.img2=pg.thumbnail.source; if(pg.fullurl) g.wp=pg.fullurl;
+  }catch(e){}
+  if(hit.qid) try{
+    const ej=await (await fetch(`https://www.wikidata.org/w/api.php?format=json&origin=*&action=wbgetentities&props=claims|sitelinks|labels&languages=es&sitefilter=eswiki&ids=${hit.qid}`)).json();
+    const e=ej.entities?.[hit.qid]||{}, c=e.claims||{}, vals=p=>(c[p]||[]).map(x=>x.mainsnak?.datavalue?.value).filter(Boolean);
+    const years=vals("P577").map(v=>+String(v.time).slice(1,5)).filter(Boolean); if(years.length) g.y=Math.min(...years);
+    const steam=vals("P1733")[0]; if(steam&&/^\d+$/.test(steam)) g.img=`https://cdn.cloudflare.steamstatic.com/steam/apps/${steam}/library_600x900.jpg`;
+    if(e.labels?.es?.value) g.n=e.labels.es.value.slice(0,120);
+    const pick={dev:vals("P178").slice(0,2),gen:vals("P136").slice(0,5),plat:vals("P400").slice(0,6)};
+    const ids=[...new Set([...pick.dev,...pick.gen,...pick.plat].map(v=>v.id))];
+    if(ids.length){ const lj=await (await fetch(`https://www.wikidata.org/w/api.php?format=json&origin=*&action=wbgetentities&props=labels&languages=es|en&ids=${ids.join("|")}`)).json();
+      const lab=id=>{ const l=lj.entities?.[id]?.labels||{}; return (l.es||l.en||{}).value||""; };
+      for(const k in pick){ const t=pick[k].map(v=>lab(v.id)).filter(l=>l&&!/^videojuegos? con\b|^video games? with\b/i.test(l)); if(t.length) g[k]=t.slice(0,k==="gen"?3:6).join(", "); } }
+    const es=e.sitelinks?.eswiki?.title;
+    const sum=async(lang,t)=>{ const r=await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t.replace(/ /g,"_"))}`); return r.ok?r.json():null; };
+    const sj=es?await sum("es",es):null, ex=(sj&&sj.extract)||"";
+    if(ex){ g.ex=ex.length>600?ex.slice(0,600).replace(/[^.!?]*$/,"")||ex.slice(0,597)+"…":ex; if(sj.content_urls?.desktop?.page) g.wp=sj.content_urls.desktop.page; }
+    else { const en=await sum("en",hit.title); if(en?.extract) g.ex=en.extract.length>600?en.extract.slice(0,600).replace(/[^.!?]*$/,""):en.extract; }
+  }catch(e){}
+  return g;
+}
+async function gAdd(which){
+  const inp=$("#gAddIn"), q=inp.value.trim(); if(!q) return;
+  const hit=which==="x"?null:gHits[+which];
+  const base=hit?{n:hit.title}:{n:q.slice(0,120)};
+  const dupe=Object.entries(G).find(([,g])=>gSlug(g.n)===gSlug(base.n));
+  inp.value=""; gShowRes("",[]);
+  if(dupe){ gSel=dupe[0]; renderGames("pull"); $("#gCounter").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"}); return; }
+  let id="g-"+gSlug(base.n), i=2; while(G[id]) id="g-"+gSlug(base.n)+"-"+(i++);
+  const g={...base,d:new Date().toISOString().slice(0,10),at:Date.now()};
+  G[id]=g; gSel=id; gSave(); renderGames("pull"); renderChrome();
+  $("#gCounter").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
+  gWrite(id,G[id]);
+  if(hit){ const more=await gDetails(hit); if(G[id]){ Object.assign(G[id],more,{d:G[id].d,at:G[id].at}); G[id]=gClean({[id]:G[id]})[id]; gSave(); renderGames(); gWrite(id,G[id]); } }
+}
+let gTimer=null;
+$("#gAddIn").addEventListener("input",e=>{ const q=e.target.value.trim(); gQ=q; clearTimeout(gTimer);
+  if(q.length<2){ gReq++; gShowRes(q?q:"",[]); if(!q) return; return; }
+  gTimer=setTimeout(()=>gSearch(q),280); });
+$("#gAddIn").addEventListener("keydown",e=>{
+  const opts=[...$("#gAddRes").querySelectorAll("button")]; if(!opts.length) return;
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); gActive=(gActive+(e.key==="ArrowDown"?1:-1)+opts.length)%opts.length;
+    opts.forEach((b,i)=>b.classList.toggle("act",i===gActive)); $("#gAddIn").setAttribute("aria-activedescendant",opts[gActive].parentElement.id); opts[gActive].scrollIntoView({block:"nearest"}); }
+  else if(e.key==="Enter"){ e.preventDefault(); (opts[gActive<0?0:gActive]).click(); }
+  else if(e.key==="Escape"){ gShowRes("",[]); }
+});
+document.addEventListener("click",e=>{ if(!e.target.closest("#gAdd")) { const ul=$("#gAddRes"); if(!ul.hidden){ ul.hidden=true; $("#gAddIn").setAttribute("aria-expanded","false"); } } });
+$("#gAddIn").addEventListener("focus",()=>{ if($("#gAddIn").value.trim()&&$("#gAddRes").innerHTML){ $("#gAddRes").hidden=false; $("#gAddIn").setAttribute("aria-expanded","true"); } });
+
 function setView(v){
   view=v; try{ localStorage.setItem("ucm-view",v); }catch(e){}
-  document.body.classList.toggle("v-juntas",v==="juntas");
+  ["ucm","juntas","juegos"].forEach(k=>document.body.classList.toggle("v-"+k,v===k));
   document.querySelectorAll("[data-view]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.view===v)));
-  renderChrome(); renderJuntas();
+  renderChrome(); renderJuntas(); renderGames();
 }
 /* VCR digits that roll like a tape counter */
 let rollReady=false;
@@ -841,9 +1077,19 @@ function renderChrome(){
   const sinceTxt=since.toLocaleDateString("es-ES",{month:"long",year:"numeric"});
   $("#carnet").innerHTML=`<h2>Carnet de socios</h2>${has?`<div class="who">${esc(nameA())} y ${esc(nameB())}</div>`:`<button class="name-btn" id="nameBtn">Poned vuestros nombres</button>`}<div class="since">Socios desde ${esc(sinceTxt)}</div><div class="stripe"></div>`;
   const nb=$("#nameBtn"); if(nb) nb.onclick=()=>{openDrawer(); setTimeout(()=>$("#inA").focus(),400);};
-  if(view==="juntas"){ const n=juntas().length; setDigits($("#cCount"),String(n).padStart(3,"0")); $("#cCountL").textContent=n===1?"juntos":"juntos"; $("#cCountSr").textContent=`${n} pelis vistas juntos`; requestAnimationFrame(()=>{ rollReady=true; document.querySelectorAll(".strip").forEach(s=>s.style.transition=""); }); }
-  document.querySelectorAll(".vcr .read:not(:first-of-type)").forEach(r=>r.classList.toggle("j-hide",view==="juntas"));
-  if(view==="juntas") return;
+  document.querySelectorAll(".vcr .read")[2].classList.toggle("j-hide",view!=="ucm");
+  if(view!=="ucm"){
+    let n,mins,lbl,hl,sr;
+    if(view==="juntas"){ const l=juntas(); n=l.length; mins=l.reduce((a,x)=>a+x.m*x.times,0); lbl="juntos"; hl="horas juntos"; sr=`${n} pelis vistas juntos`; }
+    else { const l=gList(); n=l.length; mins=Math.round(l.reduce((a,g)=>a+(g.h||0),0)*60); lbl=n===1?"juego":"juegos"; hl="horas jugando"; sr=`${n} ${n===1?"juego terminado":"juegos terminados"}`; }
+    const h=Math.floor(mins/60), m=mins%60;
+    setDigits($("#cCount"),String(n).padStart(3,"0")); $("#cCountL").textContent=lbl; $("#cCountSr").textContent=sr;
+    setDigits($("#cHours"),`${String(Math.min(h,999)).padStart(3,"0")}:${String(m).padStart(2,"0")}`); $("#cHoursL").textContent=hl;
+    $("#cHoursSr").textContent=`${h} horas y ${m} minutos ${view==="juntas"?"juntos":"jugando"}`;
+    requestAnimationFrame(()=>{ rollReady=true; document.querySelectorAll(".strip").forEach(s=>s.style.transition=""); });
+    return;
+  }
+  $("#cHoursL").textContent="horas juntos";
   const seen=D.filter(d=>included(d)&&S.items[d.id]?.st==="seen");
   const mins=seen.reduce((a,d)=>a+minutesOf(d),0), h=Math.floor(mins/60), m=mins%60;
   setDigits($("#cCount"),String(seen.length).padStart(3,"0"));
@@ -859,7 +1105,7 @@ function renderChrome(){
 }
 function render(opts={}){
   if(!selId || !unlockedList().some(d=>d.id===selId)) selId=(currentItem()||unlockedList().slice(-1)[0]||D[0]).id;
-  renderCounter(opts.anim); renderShelf(opts.arrive); renderChrome(); renderCharts(); renderJuntas();
+  renderCounter(opts.anim); renderShelf(opts.arrive); renderChrome(); renderCharts(); renderJuntas(); renderGames();
 }
 
 /* ===================== ACTIONS ===================== */
@@ -907,6 +1153,22 @@ document.addEventListener("click",e=>{
   if(vw){ if(vw.dataset.view!==view) setView(vw.dataset.view); return; }
   const jp=e.target.closest("[data-jpick]");
   if(jp){ if(jp.dataset.jpick!==jSel){ jSel=jp.dataset.jpick; renderJuntas("pull"); } $("#jCounter").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"}); return; }
+  const ga=e.target.closest("[data-gadd]");
+  if(ga){ gAdd(ga.dataset.gadd); return; }
+  const gp=e.target.closest("[data-gpick]");
+  if(gp){ if(gp.dataset.gpick!==gSel){ gSel=gp.dataset.gpick; gSure=null; renderGames("pull"); } $("#gCounter").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"}); return; }
+  const gtb=e.target.closest("[data-gtab]");
+  if(gtb){ gTab=+gtb.dataset.gtab; gAll=false; renderGames(); return; }
+  if(e.target.closest("[data-gmore]")){ gAll=!gAll; renderGames(); return; }
+  const gd=e.target.closest("[data-gdel]");
+  if(gd){ const id=gd.dataset.gdel; if(gSure!==id){ gSure=id; renderGames(); $(`[data-gdel="${id}"]`)?.focus(); return; }
+    gSure=null; delete G[id]; gSave(); gWrite(id,null); renderGames(); renderChrome(); return; }
+  const gs=e.target.closest("[data-gstar]");
+  if(gs){ const [id,who,k]=gs.dataset.gstar.split("|"); const g=G[id]; if(!g) return;
+    const cur=(g.r||[0,0])[+who], nv=cur===+k?0:+k; gSet(id,`r/${who}`,nv||null); if(!nv&&g.r) g.r[+who]=0;
+    gs.closest(".stars").outerHTML=starsHTML(id,+who,nv,+who?nameB():nameA(),"gstar");
+    document.querySelector(`[data-gstar="${id}|${who}|${k}"]`)?.focus({preventScroll:true});
+    renderGames(); return; }
   const jt=e.target.closest("[data-jtab]");
   if(jt){ jTab=+jt.dataset.jtab; jAll=false; renderJuntas(); return; }
   if(e.target.closest("[data-jmore]")){ jAll=!jAll; renderJuntas(); return; }
@@ -924,11 +1186,17 @@ document.addEventListener("click",e=>{
     commit(); renderCharts(); }
 });
 document.addEventListener("input",e=>{
+  const grv=e.target.dataset?.grv, gdt=e.target.dataset?.gdate, gh=e.target.dataset?.ghours;
+  if(grv){ const [id,w]=grv.split("|"); const g=G[id]; if(g){ const a=g.rv?[...g.rv]:["",""]; a[+w]=e.target.value.slice(0,4000); g.rv=a; gSave(); gSetLater(id,`rv/${w}`,a[+w]); } return; }
+  if(gdt){ if(G[gdt]){ const v=e.target.value; gSet(gdt,"d",/^\d{4}-\d{2}-\d{2}$/.test(v)?v:null); const sm=document.querySelector("#gCounter .sticker small"); if(sm) sm.textContent=fmtDate(v); } return; }
+  if(gh){ if(G[gh]){ const v=Math.round((parseFloat(String(e.target.value).replace(",","."))||0)*2)/2; G[gh].h=v; gSave(); gSetLater(gh,"h",v>0&&v<10000?v:null); if(view==="juegos") renderChrome(); } return; }
   const n=e.target.dataset?.note, dt=e.target.dataset?.date;
   if(n){ (S.items[n]||(S.items[n]={})).n=e.target.value.slice(0,600); commit(); }
   if(dt){ const it=S.items[dt]||(S.items[dt]={}); if(e.target.value) it.d=e.target.value; else delete it.d; commit();
     const sm=document.querySelector(".sticker small"); if(sm) sm.textContent=fmtDate(it.d); }
 });
+
+document.addEventListener("change",e=>{ if(e.target.matches("[data-gdate],[data-ghours]")) setTimeout(()=>renderGames(),0); });
 
 /* ===================== PERSISTENCE ===================== */
 /* Shared store: Firebase Realtime Database (REST + live stream). Empty = not configured. */
@@ -970,7 +1238,7 @@ function fbAdopt(){
   const merged=Object.assign({},remote); for(const k in pend){ if(pend[k]===null) delete merged[k]; else merged[k]=pend[k]; }
   fbSent=remote; S=sanitize(unflat(merged)); lsWrite();
   const ae=document.activeElement;
-  if(ae && (ae.matches("[data-note]")||ae.matches("[data-date]")||ae.matches("#inTitle,#inA,#inB"))){ renderChrome(); renderCharts(); return; }
+  if(ae && (ae.matches("[data-note]")||ae.matches("[data-date]")||ae.matches("#inTitle,#inA,#inB,[data-grv],[data-gdate],[data-ghours],#gAddIn"))){ renderChrome(); renderCharts(); return; }
   normalizeReach(); render(); fillSettings();
 }
 let lbTree=null, lbT=null;
@@ -983,7 +1251,7 @@ function lbStream(){
       if(data===null) delete o[ks[ks.length-1]]; else o[ks[ks.length-1]]=data; };
     const on=ev=>{ try{ const m=JSON.parse(ev.data); if(!m) return;
       if(ev.type==="put") set(m.path,m.data); else for(const k in m.data) set(m.path.replace(/\/$/,"")+"/"+k,m.data[k]);
-      clearTimeout(lbT); lbT=setTimeout(()=>{ const t=lbTree||{}; LB=[t[0]||t["0"]||{},t[1]||t["1"]||{}]; if(Array.isArray(t)){ LB=[t[0]||{},t[1]||{}]; } renderJuntas(); if(view==="juntas") renderChrome(); },80); }catch(e){} };
+      clearTimeout(lbT); lbT=setTimeout(()=>{ const t=lbTree||{}; LB=[t[0]||t["0"]||{},t[1]||t["1"]||{}]; if(Array.isArray(t)){ LB=[t[0]||{},t[1]||{}]; } renderJuntas(); renderChrome(); },80); }catch(e){} };
     es.addEventListener("put",on); es.addEventListener("patch",on);
   }catch(e){}
 }
@@ -1167,7 +1435,7 @@ const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 function installUI(){
   const can=!!installEvt&&!standalone();
-  $("#btnInstall").hidden=!can; $("#btnInstall2").hidden=!can;
+  $("#btnInstall2").hidden=!can;
   $("#installHelp").textContent=standalone()?"Ya la tenéis instalada en este dispositivo. Se actualiza sola."
     :isIOS?"En iPhone o iPad: abrid esta página en Safari, tocad el botón Compartir (el cuadrado con la flecha) y elegid «Añadir a pantalla de inicio». Saldrá con su icono, como una app más."
     :can?"Tocad el botón para añadirla a la pantalla de inicio o al escritorio, con su icono y sin la barra del navegador."
@@ -1207,7 +1475,7 @@ $("#btnShareInstall").onclick=async()=>{
   try{ await navigator.clipboard.writeText(url); m.textContent="Enlace copiado. Pégalo en WhatsApp: al abrirlo le saldrá el botón de instalar."; }
   catch(e){ m.textContent=url; }
 };
-$("#btnInstall").onclick=doInstall; $("#btnInstall2").onclick=doInstall;
+$("#btnInstall2").onclick=doInstall;
 installUI();
 if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 
@@ -1260,5 +1528,5 @@ if(pushOK()) navigator.serviceWorker.getRegistration().then(r=>r&&r.pushManager.
 
 /* ===================== BOOT ===================== */
 const saved=lsRead(); if(saved) S=sanitize(saved);
-normalizeReach(); render(); fillSettings(); setView(view); initSync();
+normalizeReach(); render(); fillSettings(); setView(view); initSync(); gStream();
 </script>

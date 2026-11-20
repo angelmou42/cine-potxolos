@@ -8,7 +8,7 @@ if (!process.env.VAPID_PRIVATE) { console.log("Falta el secreto VAPID_PRIVATE: n
 webpush.setVapidDetails("https://angelmou42.github.io/cine-potxolos/", PUBLIC, process.env.VAPID_PRIVATE);
 
 const WHO = ["a", "b"];
-const [state, diary, subs, prev] = await Promise.all([db("maraton"), db("letterboxd"), db("push"), db("pushstate")]);
+const [state, diary, subs, prev, games] = await Promise.all([db("maraton"), db("letterboxd"), db("push"), db("pushstate"), db("juegos")]);
 if (!state) throw new Error("El maratón ha llegado vacío: no se compara nada esta vez.");
 const S = state, items = S.items || {};
 const names = [(S.a || "").trim() || "Angel", (S.b || "").trim() || "Andrea"];
@@ -16,7 +16,7 @@ const at = (x, w) => (x == null ? undefined : x[w]);           // Firebase gives
 const hash = s => { let h = 5381; for (const c of String(s)) h = (h * 33 + c.codePointAt(0)) >>> 0; return h.toString(36); };
 
 // What is saved now, per person
-const now = { r: { a: {}, b: {} }, rv: { a: {}, b: {} }, lb: { a: {}, b: {} } };
+const now = { r: { a: {}, b: {} }, rv: { a: {}, b: {} }, lb: { a: {}, b: {} }, gr: { a: {}, b: {} }, grv: { a: {}, b: {} }, gpend: { a: {}, b: {} } };
 for (const [id, it] of Object.entries(items)) WHO.forEach((k, w) => {
   const r = +at(it.r, w) || 0, rv = at(it.rv, w) || "";
   if (r) now.r[k][id] = r;
@@ -28,6 +28,25 @@ const stars = r => "★".repeat(Math.floor(r)) + (r % 1 ? "½" : "");
 const num = r => String(r).replace(".", ",");
 const clip = (t, n = 110) => { t = t.replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t; };
 const dn = d => Date.parse(d + "T12:00:00Z") / 864e5;
+
+// Games: ratings count at once; a review only once it has stopped changing for a run (it is typed in the web)
+const G = games || {};
+const gNotices = { a: [], b: [] };
+for (const [id, g] of Object.entries(G)) WHO.forEach((k, w) => {
+  const r = +at(g.r, w) || 0, text = at(g.rv, w) || "", h = text.trim() ? hash(text) : "";
+  const P = { r: prev?.gr?.[k]?.[id], rv: prev?.grv?.[k]?.[id], pend: prev?.gpend?.[k]?.[id] };
+  if (r) now.gr[k][id] = r;
+  let newRv = false;
+  if (h && h !== P.rv) { if (h === P.pend || !prev) { now.grv[k][id] = h; newRv = !P.rv && !!prev; } else { now.gpend[k][id] = h; if (P.rv) now.grv[k][id] = P.rv; } }
+  else if (h) now.grv[k][id] = h;
+  if (!prev) return;
+  const newR = r && r !== P.r;
+  if (!newR && !newRv) return;
+  const who = names[w], n = g.n || "un juego";
+  const title = newR ? (P.r ? `${who} ha cambiado su nota de ${n}` : `${who} ha puntuado ${n}`) : `${who} ha escrito una reseña de ${n}`;
+  const head = r ? `${stars(r)}  ${num(r)} de 5${newR && P.r ? ` (antes ${num(P.r)})` : ""}` : "";
+  gNotices[k].push({ title, body: [head, newRv ? `«${clip(text)}»` : ""].filter(Boolean).join("\n") || "Juegos terminados", short: `${n}${r ? ` ${num(r)} ★` : ""}`, url: "./#juegos", tag: `game-${id}` });
+});
 
 // Build the notices each person causes (they go to the OTHER person's phones)
 const notices = { a: [], b: [] };
@@ -55,6 +74,7 @@ if (prev) WHO.forEach((k, w) => {
   }
 });
 
+WHO.forEach(k => notices[k].push(...gNotices[k]));
 let sent = 0, dropped = 0;
 async function send(k, id, sub, msg) {
   if (process.env.DEBUG) console.log(`→ ${k}:`, JSON.stringify(msg));

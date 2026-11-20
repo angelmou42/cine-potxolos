@@ -7,7 +7,7 @@ const get = async p => { const r = await fetch(`${DB}/${p}.json`); if (!r.ok) th
 const sorted = v => Array.isArray(v) ? v.map(sorted) : v && typeof v === "object"
   ? Object.fromEntries(Object.keys(v).sort().map(k => [k, sorted(v[k])])) : v;
 
-const data = { maraton: await get("maraton"), letterboxd: await get("letterboxd") };
+const data = { maraton: await get("maraton"), letterboxd: await get("letterboxd"), juegos: await get("juegos") };
 if (data.maraton) delete data.maraton.lbAt; // hourly timestamp: not worth a new copy
 if (!data.maraton) throw new Error("La base de datos ha devuelto el maratón vacío: no se guarda la copia.");
 const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(new Date());

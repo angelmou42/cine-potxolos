@@ -62,6 +62,24 @@ for (const who of [0, 1]) {
 }
 const changed = Object.keys(patch).length;
 patch.lbAt = Date.now(); if (changed) patch.upd = Date.now();
+// Runtime of each film (for the hours watched together), read once from its Letterboxd page and kept in "lbfilms"
+const filmSlug = lk => (String(lk).match(/\/film\/([^/]+)\//) || [])[1];
+const runtimes = (await (await fetch(`${DB}/lbfilms.json`)).json()) || {}, newRuntimes = {};
+for (const key of Object.keys(diary)) {
+  const e = diary[key], slug = filmSlug(e.lk); if (!slug) continue;
+  if (!(slug in runtimes) && !(slug in newRuntimes) && Object.keys(newRuntimes).length < 40) {
+    try {
+      const page = await (await fetch(`https://letterboxd.com/film/${slug}/`, { headers: { "User-Agent": "Mozilla/5.0 (compatible; rss-reader)" } })).text();
+      newRuntimes[slug] = +((page.match(/(\d+)&nbsp;mins/) || [])[1] || 0);
+      await new Promise(r => setTimeout(r, 400));
+    } catch (err) { console.error(`Duración de ${slug}: ${err}`); }
+  }
+  const m = runtimes[slug] ?? newRuntimes[slug]; if (m) e.m = m;
+}
+if (Object.keys(newRuntimes).length) {
+  await fetch(`${DB}/lbfilms.json`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newRuntimes) });
+  console.log(`Duraciones nuevas: ${Object.keys(newRuntimes).length}.`);
+}
 const res = await fetch(`${FB}.json`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
 if (!res.ok) throw new Error(`Firebase: HTTP ${res.status}`);
 if (Object.keys(diary).length) {
