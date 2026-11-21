@@ -1,7 +1,7 @@
 // Push notices: when one of you rates or reviews something (here or on Letterboxd), the other one's phones get a notice.
 // Runs every few minutes from GitHub Actions. It compares what is saved now with what it saw last time (node "pushstate").
 import webpush from "web-push";
-import { D, norm, match, db } from "./common.mjs";
+import { D, norm, match, db, shallow } from "./common.mjs";
 
 const PUBLIC = "BEvoesQgdGfv6Ytj8XEfaJYDEIw-lgr0Ju2ODa0rp4U9-uV1yF0MPuQ8P77ZoGEBSj8oAc_FxNXKGhoy3rjcRlI";
 if (!process.env.VAPID_PRIVATE) { console.log("Falta el secreto VAPID_PRIVATE: no se mandan avisos."); process.exit(0); }
@@ -47,6 +47,32 @@ for (const [id, g] of Object.entries(G)) WHO.forEach((k, w) => {
   const head = r ? `${stars(r)}  ${num(r)} de 5${newR && P.r ? ` (antes ${num(P.r)})` : ""}` : "";
   gNotices[k].push({ title, body: [head, newRv ? `«${clip(text)}»` : ""].filter(Boolean).join("\n") || "Juegos terminados", short: `${n}${r ? ` ${num(r)} ★` : ""}`, url: "./#juegos", tag: `game-${id}` });
 });
+
+// Photos in the game albums: only the keys are read (cheap); "who" is read just for new ones.
+// A photo uploaded from a phone that has not said who it is (no notices set up) goes to both.
+const toAll = [];
+now.ph = {}; now.phOn = 1;
+for (const gid of Object.keys(await shallow("fotos"))) {
+  const pids = Object.keys(await shallow(`fotos/${gid}`)); if (!pids.length) continue;
+  now.ph[gid] = Object.fromEntries(pids.map(p => [p, 1]));
+  if (!prev?.phOn) continue; // first run with photos: just remember them
+  const fresh = pids.filter(p => !prev.ph?.[gid]?.[p]); if (!fresh.length) continue;
+  const by = { 0: 0, 1: 0, x: 0 };
+  for (const p of fresh) { const w = await db(`fotos/${gid}/${p}/w`); by[w === 0 || w === 1 ? w : "x"]++; }
+  const n = G[gid]?.n || "un juego";
+  WHO.forEach((k, w) => { if (by[w]) gNotices[k].push({ title: `${names[w]} ha subido ${by[w] === 1 ? "una foto" : `${by[w]} fotos`} de ${n}`, body: "Están en el álbum del juego.", short: `${by[w]} 📷 ${n}`, url: "./#juegos", tag: `fotos-${gid}` }); });
+  if (by.x) toAll.push({ title: `${by.x === 1 ? "Una foto nueva" : `${by.x} fotos nuevas`} de ${n}`, body: "Están en el álbum del juego.", url: "./#juegos", tag: `fotos-${gid}` });
+}
+
+// Year in review: on 31 December from 20:00 (Madrid time), one notice to every phone; if that run was missed, during January.
+const P = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", hourCycle: "h23" })
+  .formatToParts(new Date()).map(p => [p.type, +p.value]));
+const wrapY = P.month === 12 && P.day === 31 && P.hour >= 20 ? P.year : P.month === 1 ? P.year - 1 : 0;
+now.wrap = prev?.wrap || 0;
+if (wrapY && now.wrap < wrapY) {
+  now.wrap = wrapY;
+  if (prev) toAll.push({ title: `Ya está vuestro ${wrapY} en el videoclub 🎬`, body: "Horas juntos, lo mejor del año y en qué no estáis de acuerdo.", url: `./#resumen-${wrapY}`, tag: `resumen-${wrapY}` });
+}
 
 // Build the notices each person causes (they go to the OTHER person's phones)
 const notices = { a: [], b: [] };
@@ -94,6 +120,7 @@ for (const [w, k] of WHO.entries()) {
   const mine = Object.entries(subs?.[k] || {}), from = notices[WHO[1 - w]];
   let msgs = from;
   if (from.length > 3) msgs = [{ title: `${names[1 - w]} ha puntuado ${from.length} cosas`, body: from.map(n => n.short).slice(0, 6).join(" · ") + (from.length > 6 ? "…" : ""), url: "./", tag: "varios" }];
+  msgs = [...msgs, ...toAll];
   for (const [id, sub] of mine) {
     if (sub.test) {
       if (!await send(k, id, sub, { title: "Avisos activados 🎬", body: `Así te llegará cuando ${names[1 - w]} puntúe o reseñe algo.`, url: "./", tag: "prueba" })) continue;

@@ -20,3 +20,9 @@ export async function db(path, method = "GET", body) {
   if (!r.ok) throw new Error(`Firebase ${method} ${path}: HTTP ${r.status}`);
   return r.json();
 }
+// Only the keys of a node (no data): cheap way to list games and photos.
+export async function shallow(path) {
+  const r = await fetch(`${DB}/${path}.json?shallow=true`);
+  if (!r.ok) throw new Error(`Firebase GET ${path}: HTTP ${r.status}`);
+  return (await r.json()) || {};
+}
