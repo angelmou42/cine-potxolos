@@ -17,6 +17,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: sync/package-lock.json
+      - name: Portadas de Steam
+        run: node sync/steam.mjs
+        continue-on-error: true
+        env:
+          FB_KEY: ${{ secrets.FB_KEY }}
       - run: npm ci --prefix sync --no-audit --no-fund
       - run: node sync/notify.mjs
         env:

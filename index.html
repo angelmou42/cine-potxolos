@@ -595,7 +595,7 @@ html[data-luces="off"] .g-res img,html[data-luces="off"] .g-res .ph{background:#
     </section>
   </main>
   <footer>
-    <p class="credits">Carátulas: Marvel Studios, Sony Pictures y Netflix, vía Wikipedia. Portadas y fichas de juegos: Wikipedia, Wikidata y Steam. Uso personal, sin ánimo de lucro.</p>
+    <p class="credits">Carátulas: Marvel Studios, Sony Pictures y Netflix, vía Wikipedia. Portadas y fichas de juegos y pelis: Wikipedia, Wikidata y Steam. Uso personal, sin ánimo de lucro.</p>
   </footer>
 </div>
 
@@ -1076,7 +1076,8 @@ function gClean(o){
     const x={n:String(v.n).replace(/\s*\((\d{4} )?(video ?game|videojuego)\)$/i,"").slice(0,120)||String(v.n).slice(0,120),at:Number(v.at)||0};
     for(const k of ["dev","gen","plat"]) if(v[k]) x[k]=String(v[k]).slice(0,160);
     if(v.ex) x.ex=String(v.ex).slice(0,900);
-    for(const k of ["img","img2","wp"]){ const u=httpsOr(v[k]); if(u) x[k]=u; }
+    for(const k of ["img","img2","wp","stm"]){ const u=httpsOr(v[k]); if(u) x[k]=u; }
+    if(/^\d{1,9}$/.test(String(v.sid||""))) x.sid=+v.sid; if(+v.sx>0) x.sx=+v.sx;
     if(+v.y>1950&&+v.y<2100) x.y=+v.y;
     if(typeof v.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.d)) x.d=v.d;
     const h=Math.round((Number(v.h)||0)*2)/2; if(h>0&&h<10000) x.h=h;
@@ -1157,7 +1158,8 @@ function renderGames(anim){
         </dl>
         ${more.length?`<dl class="g-more">${more.map(x=>`<div><dt>${x[0]}</dt><dd>${esc(x[1])}</dd></div>`).join("")}</dl>`:""}
         ${g.ex?`<p class="syn">${esc(g.ex)}</p>`:""}
-        ${g.wp?`<div class="lk-row"><a class="link" href="${esc(g.wp)}" target="_blank" rel="noopener noreferrer">Ver en Wikipedia</a></div>`:""}
+        ${g.wp||g.stm?`<div class="lk-row">${g.wp?`<a class="link" href="${esc(g.wp)}" target="_blank" rel="noopener noreferrer">Ver en Wikipedia</a>`:""}${g.stm?`<a class="link" href="${esc(g.stm)}" target="_blank" rel="noopener noreferrer">Ver en Steam</a>`:""}</div>`:""}
+        ${!g.img&&!g.img2&&!g.sx?`<p class="note">${ICON.info}<span>Buscando la portada y la ficha en Steam: llegan solas en unos minutos.</span></p>`:""}
         <div class="ficha">
           <h3>Ficha de la partida</h3>
           <div class="f-row"><label for="gd-${g.id}">Lo terminamos el</label><input type="date" id="gd-${g.id}" data-gdate="${g.id}" value="${esc(g.d||"")}"></div>
@@ -1198,27 +1200,39 @@ const WP="https://en.wikipedia.org/w/api.php?format=json&origin=*&";
 const gSlug=t=>String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,70)||"juego";
 const gDesc=d=>String(d||"").replace(/^(\d{4}) video game$/i,"Videojuego de $1").replace(/^video game$/i,"Videojuego").replace(/^upcoming video game$/i,"Videojuego por salir");
 let gQ="", gReq=0, gActive=-1;
+async function gFind(q){
+  const wp=fetch(WP+"action=query&generator=search&gsrlimit=8&prop=pageimages|pageprops|description&piprop=thumbnail&pithumbsize=160&pilicense=any&ppprop=wikibase_item&gsrsearch="+encodeURIComponent(`hastemplate:"Infobox video game" ${q}`))
+    .then(r=>r.json()).then(j=>Object.values(j.query?.pages||{}).sort((a,b)=>a.index-b.index).map(p=>({title:p.title.replace(/\s*\((\d{4} )?video game\)$/i,""),desc:gDesc(p.description),thumb:p.thumbnail?.source||"",qid:p.pageprops?.wikibase_item||"",wpTitle:p.title})));
+  const wd=(async()=>{
+    const j=await (await fetch("https://www.wikidata.org/w/api.php?format=json&origin=*&action=query&list=search&srlimit=8&srsearch="+encodeURIComponent(`${q} haswbstatement:P31=Q7889`))).json();
+    const ids=(j.query?.search||[]).map(x=>x.title).filter(t=>/^Q\d+$/.test(t)); if(!ids.length) return [];
+    const ej=await (await fetch(`https://www.wikidata.org/w/api.php?format=json&origin=*&action=wbgetentities&props=labels|descriptions|claims&languages=es|en&ids=${ids.join("|")}`)).json();
+    return ids.map(id=>{ const e=ej.entities?.[id]||{}, l=e.labels||{}, d=e.descriptions||{}, st=(e.claims?.P1733||[])[0]?.mainsnak?.datavalue?.value;
+      return {title:(l.es||l.en||{}).value||"",desc:gDesc((d.es||d.en||{}).value)||"Videojuego",thumb:/^\d+$/.test(st||"")?`https://cdn.cloudflare.steamstatic.com/steam/apps/${st}/capsule_184x69.jpg`:"",qid:id,src:"wd"}; }).filter(x=>x.title);
+  })();
+  const [a,b]=await Promise.allSettled([wp,wd]);
+  if(a.status==="rejected"&&b.status==="rejected") throw new Error("sin conexión");
+  const out=a.status==="fulfilled"?a.value:[], seen=new Set(out.map(x=>x.qid).filter(Boolean));
+  if(b.status==="fulfilled") for(const x of b.value) if(!seen.has(x.qid)){ seen.add(x.qid); out.push(x); }
+  return out.slice(0,10);
+}
 async function gSearch(q){
-  const id=++gReq;
-  const url=WP+"action=query&generator=search&gsrlimit=8&prop=pageimages|pageprops|description&piprop=thumbnail&pithumbsize=160&pilicense=any&ppprop=wikibase_item&gsrsearch="+encodeURIComponent(`hastemplate:"Infobox video game" ${q}`);
-  let hits=[];
-  try{ const j=await (await fetch(url)).json(); hits=Object.values(j.query?.pages||{}).sort((a,b)=>a.index-b.index)
-      .map(p=>({title:p.title,desc:gDesc(p.description),thumb:p.thumbnail?.source||"",qid:p.pageprops?.wikibase_item||""})); }
-  catch(e){ if(id===gReq) gShowRes(q,null); return; }
+  const id=++gReq; let hits;
+  try{ hits=await gFind(q); }catch(e){ if(id===gReq) gShowRes(q,null); return; }
   if(id!==gReq) return; gHits=hits; gShowRes(q,hits);
 }
 function gShowRes(q,hits){
   const ul=$("#gAddRes"); gActive=-1;
   if(!q){ ul.hidden=true; $("#gAddIn").setAttribute("aria-expanded","false"); return; }
-  let h=hits===null?`<li class="info">No se ha podido buscar ahora. Puedes añadirlo igualmente:</li>`:hits.length?"":`<li class="info">No lo encuentro en Wikipedia. Puedes añadirlo igualmente, sin portada:</li>`;
+  let h=hits===null?`<li class="info">No se ha podido buscar ahora. Puedes añadirlo igualmente:</li>`:hits.length?"":`<li class="info">No lo encuentro en Wikipedia. Añádelo igualmente: si está en Steam, la portada y la ficha llegan solas en unos minutos.</li>`;
   (hits||[]).forEach((x,i)=>{ h+=`<li role="option" id="gopt-${i}"><button type="button" data-gadd="${i}">${x.thumb?`<img src="${esc(x.thumb)}" alt="" referrerpolicy="no-referrer">`:`<span class="ph"></span>`}<span><b>${esc(x.title)}</b><small>${esc(x.desc||"Videojuego")}</small></span></button></li>`; });
-  h+=`<li role="option" id="gopt-x"><button type="button" data-gadd="x"><span class="ph"></span><span><b>Añadir «${esc(q)}» tal cual</b><small>Sin ficha automática</small></span></button></li>`;
+  h+=`<li role="option" id="gopt-x"><button type="button" data-gadd="x"><span class="ph"></span><span><b>Añadir «${esc(q)}» tal cual</b><small>Si está en Steam, la ficha llega sola en unos minutos</small></span></button></li>`;
   ul.innerHTML=h; ul.hidden=false; $("#gAddIn").setAttribute("aria-expanded","true");
 }
 async function gDetails(hit){
   const g={n:hit.title.slice(0,120)};
-  try{
-    const pj=await (await fetch(WP+"action=query&prop=pageimages|info&inprop=url&piprop=thumbnail&pithumbsize=600&pilicense=any&titles="+encodeURIComponent(hit.title))).json();
+  if(hit.src!=="wd") try{
+    const pj=await (await fetch(WP+"action=query&prop=pageimages|info&inprop=url&piprop=thumbnail&pithumbsize=600&pilicense=any&titles="+encodeURIComponent(hit.wpTitle||hit.title))).json();
     const pg=Object.values(pj.query?.pages||{})[0]||{}; if(pg.thumbnail) g.img2=pg.thumbnail.source; if(pg.fullurl) g.wp=pg.fullurl;
   }catch(e){}
   if(hit.qid) try{
@@ -1236,7 +1250,7 @@ async function gDetails(hit){
     const sum=async(lang,t)=>{ const r=await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t.replace(/ /g,"_"))}`); return r.ok?r.json():null; };
     const sj=es?await sum("es",es):null, ex=(sj&&sj.extract)||"";
     if(ex){ g.ex=ex.length>600?ex.slice(0,600).replace(/[^.!?]*$/,"")||ex.slice(0,597)+"…":ex; if(sj.content_urls?.desktop?.page) g.wp=sj.content_urls.desktop.page; }
-    else { const en=await sum("en",hit.title); if(en?.extract) g.ex=en.extract.length>600?en.extract.slice(0,600).replace(/[^.!?]*$/,""):en.extract; }
+    else if(hit.src!=="wd"){ const en=await sum("en",hit.wpTitle||hit.title); if(en?.extract) g.ex=en.extract.length>600?en.extract.slice(0,600).replace(/[^.!?]*$/,""):en.extract; }
   }catch(e){}
   return g;
 }
@@ -1794,13 +1808,13 @@ async function wpSearch(tpl,q){
   return Object.values(j.query?.pages||{}).sort((a,b)=>a.index-b.index).map(p=>({title:p.title,desc:p.description||"",thumb:p.thumbnail?.source||"",qid:p.pageprops?.wikibase_item||""}));
 }
 // one search box with suggestions (same look as the games one)
-function acBox(form,{search,descOf,onPick}){
+function acBox(form,{search,descOf,onPick,raw="Sin ficha automática",none="No lo encuentro en Wikipedia. Puedes añadirlo igualmente, sin portada:"}){
   const inp=form.querySelector("input"), ul=form.querySelector("ul"); let hits=[],req=0,act=-1,t=null;
   const close=()=>{ ul.hidden=true; inp.setAttribute("aria-expanded","false"); };
   const show=(q,list)=>{ act=-1; if(!q){ close(); return; }
-    let h=list===null?`<li class="info">No se ha podido buscar ahora. Puedes añadirlo igualmente:</li>`:list.length?"":`<li class="info">No lo encuentro en Wikipedia. Puedes añadirlo igualmente, sin portada:</li>`;
+    let h=list===null?`<li class="info">No se ha podido buscar ahora. Puedes añadirlo igualmente:</li>`:list.length?"":`<li class="info">${esc(none)}</li>`;
     (list||[]).forEach((x,i)=>{ h+=`<li role="option"><button type="button" data-ac="${i}">${x.thumb?`<img src="${esc(x.thumb)}" alt="" referrerpolicy="no-referrer">`:`<span class="ph"></span>`}<span><b>${esc(x.title)}</b><small>${esc(descOf(x))}</small></span></button></li>`; });
-    h+=`<li role="option"><button type="button" data-ac="x"><span class="ph"></span><span><b>Añadir «${esc(q)}» tal cual</b><small>Sin ficha automática</small></span></button></li>`;
+    h+=`<li role="option"><button type="button" data-ac="x"><span class="ph"></span><span><b>Añadir «${esc(q)}» tal cual</b><small>${esc(raw)}</small></span></button></li>`;
     ul.innerHTML=h; ul.hidden=false; inp.setAttribute("aria-expanded","true"); };
   inp.addEventListener("input",()=>{ const q=inp.value.trim(); clearTimeout(t);
     if(q.length<2){ req++; show(q,[]); return; }
@@ -1834,7 +1848,8 @@ function gFinish(id){
   gSel=id; gSave(); renderGames("pull"); renderChrome(); gWrite(id,G[id]);
   $("#gCounter").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
 }
-acBox($("#gWishAdd"),{ search:q=>wpSearch("Infobox video game",q), descOf:x=>gDesc(x.desc)||"Videojuego",
+acBox($("#gWishAdd"),{ search:gFind, descOf:x=>x.desc||"Videojuego", raw:"Si está en Steam, la ficha llega sola en unos minutos",
+  none:"No lo encuentro en Wikipedia. Añádelo igualmente: si está en Steam, la portada y la ficha llegan solas en unos minutos.",
   onPick:async(hit,q)=>{
     const n=(hit?hit.title:q).slice(0,120); if(!n) return;
     const dupe=Object.entries(G).find(([,g])=>gSlug(g.n)===gSlug(n));
