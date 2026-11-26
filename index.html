@@ -502,6 +502,67 @@ html[data-luces="off"] .invite{background:radial-gradient(120% 80% at 50% 0%,#3a
 html[data-luces="off"] .ph-th{background:#e9e5da}
 html[data-luces="off"] .g-res img,html[data-luces="off"] .g-res .ph{background:#3a3740}
 
+/* ---------- Roulette: a fairground wheel for the pending lists ---------- */
+.wish-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.wish-tools .key{min-height:46px;font-size:16px;padding:0 16px}
+.wish-tools .key svg{width:20px;height:20px}
+.ruleta{position:fixed;inset:0;z-index:86;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(90% 60% at 50% 30%,color-mix(in oklab,var(--carpet) 65%,#ffd23f),transparent 70%),var(--carpet)}
+.ruleta[hidden]{display:none}
+.ru-in{max-width:1000px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+.ru-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.ru-head h2{margin:0;font-family:var(--sign);font-weight:400;font-size:clamp(26px,5vw,38px);color:var(--on-carpet)}
+.ru-head .wr-close{position:static}
+.ru-body{display:grid;gap:22px;align-items:start}
+@media (min-width:820px){.ru-body{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}}
+.ru-stage{position:relative;width:min(100%,520px);margin:0 auto;aspect-ratio:1}
+.ru-stage svg{width:100%;height:100%;display:block;filter:drop-shadow(0 24px 40px rgba(0,0,0,.55))}
+#ruRot{will-change:transform}
+.ru-seg text{font-family:var(--label);font-weight:800;fill:#141416;pointer-events:none}
+.ru-seg.dim path{filter:saturate(.25) brightness(.55)}
+.ru-seg.win path{stroke:#fff;stroke-width:1.6}
+.ru-bulb{fill:#fff6c8}
+.ruleta.spin .ru-bulb:nth-child(odd),.ruleta.won .ru-bulb:nth-child(odd){animation:bulb .35s steps(1) infinite}
+.ruleta.spin .ru-bulb:nth-child(even),.ruleta.won .ru-bulb:nth-child(even){animation:bulb .35s steps(1) infinite reverse}
+@keyframes bulb{0%{fill:#fff6c8}50%{fill:#7a6420}}
+.ru-pin{position:absolute;left:50%;top:-4px;z-index:2;width:34px;height:46px;margin-left:-17px;transform-origin:50% 12px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
+.ru-pin svg{width:100%;height:100%;display:block}
+.ru-pin.flick{animation:flick .12s ease-out}
+@keyframes flick{40%{transform:rotate(-16deg)}}
+.ru-go{position:absolute;left:50%;top:50%;z-index:2;width:25%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:5px solid #141416;background:radial-gradient(circle at 35% 30%,#ff8d5c,var(--orange) 55%,#c2410c);color:#141416;font-family:var(--sign);font-size:clamp(15px,3.4vw,22px);box-shadow:0 6px 0 #6b1f05,0 10px 18px rgba(0,0,0,.5);cursor:pointer}
+.ru-go:active:not([disabled]){transform:translate(-50%,-46%);box-shadow:0 2px 0 #6b1f05}
+.ru-go[disabled]{cursor:default;filter:grayscale(.6) brightness(.8)}
+.ru-win{min-height:0}
+.ru-card{display:grid;grid-template-columns:76px minmax(0,1fr);gap:4px 16px;align-items:center;background:var(--yellow);color:#141416;border-radius:6px;padding:12px 16px 12px 12px;box-shadow:0 16px 30px -14px rgba(0,0,0,.7);animation:ruPop .55s cubic-bezier(.2,1.5,.4,1) both}
+.ru-card.noimg{grid-template-columns:minmax(0,1fr);padding-left:18px}
+.ru-card .wimg{grid-row:span 3;width:76px;height:110px;border-radius:3px;overflow:hidden;background:repeating-linear-gradient(135deg,#1c1d22 0 8px,#24252b 8px 16px)}
+.ru-card .wimg img{width:100%;height:100%;object-fit:cover;display:block}
+.ru-card small{font-family:var(--label);font-weight:800;font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+.ru-card b{font-family:var(--body);font-weight:800;font-size:24px;line-height:1.08;overflow-wrap:anywhere}
+.ru-card .btns{margin-top:6px}
+.ru-card .btn{min-height:40px;font-size:15px;padding:0 14px;border-color:#141416;color:#141416}
+.ru-card .btn-main{background:#141416;color:var(--yellow)}
+@keyframes ruPop{from{transform:scale(.6) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+.ru-side{background:var(--paper);color:var(--ink);border-radius:6px;padding:16px 16px 14px;box-shadow:0 14px 26px -16px rgba(0,0,0,.7)}
+.ru-side h3{margin:0 0 4px;font-family:var(--sign);font-weight:400;font-size:16px}
+.ru-side .help{margin:0 0 10px}
+.ru-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:4px;max-height:min(46vh,380px);overflow:auto}
+.ru-opt{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 6px;border-radius:4px;cursor:pointer}
+.ru-opt:hover{background:var(--paper-2)}
+.ru-opt input{width:22px;height:22px;accent-color:var(--orange);flex:none;margin:0}
+.ru-opt .sw{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+.ru-opt span{flex:1;min-width:0;font-weight:700;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
+.ru-opt .x{flex:none;background:none;border:0;width:36px;height:36px;border-radius:50%;color:var(--ink-2);font-size:20px;line-height:1;cursor:pointer}
+.ru-opt .x:hover{background:rgba(0,0,0,.08);color:var(--ink)}
+.ru-add{display:flex;gap:8px}
+.ru-add input{flex:1;min-width:0;min-height:44px;border:2px solid var(--ink);border-radius:4px;padding:0 10px;background:#fff;color:var(--ink);font-family:var(--body);font-size:16px}
+.ru-add .btn{min-height:44px;font-size:16px;padding:0 16px}
+.ru-quick{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}
+.ru-quick button{background:none;border:0;padding:4px 0;font-family:var(--label);font-weight:700;font-size:15px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ru-empty{color:var(--on-carpet);text-align:center;font-size:16px;margin:0}
+html[data-luces="off"] .ru-add input{background:#141317}
+html[data-luces="off"] .ru-opt .x:hover{background:rgba(255,255,255,.08)}
+@media (prefers-reduced-motion:reduce){.ruleta.spin .ru-bulb,.ruleta.won .ru-bulb{animation:none}}
+
 @media (min-width:1500px){.wrap{max-width:1320px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
@@ -559,6 +620,7 @@ html[data-luces="off"] .g-res img,html[data-luces="off"] .g-res .ph{background:#
         <input id="fWishIn" type="search" enterkeyhint="search" placeholder="Apuntar una peli para ver…" role="combobox" aria-expanded="false" aria-controls="fWishRes" aria-autocomplete="list">
         <ul class="g-res" id="fWishRes" role="listbox" aria-label="Pelis encontradas" hidden></ul>
       </form>
+      <div class="wish-tools"><button type="button" class="key" data-ruopen="f"><span class="led"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7M12 14v7M3 12h7M14 12h7M5.6 5.6l5 5M13.4 13.4l5 5M18.4 5.6l-5 5M10.6 13.4l-5 5"/></svg>Ruleta: ¿qué vemos?</button></div>
       <p class="wish-msg" id="fWishMsg" aria-live="polite"></p>
       <ul class="wish" id="fWish"></ul>
     </section>
@@ -586,6 +648,7 @@ html[data-luces="off"] .g-res img,html[data-luces="off"] .g-res .ph{background:#
         <input id="gWishIn" type="search" enterkeyhint="search" placeholder="Apuntar un juego para jugar…" role="combobox" aria-expanded="false" aria-controls="gWishRes" aria-autocomplete="list">
         <ul class="g-res" id="gWishRes" role="listbox" aria-label="Juegos encontrados" hidden></ul>
       </form>
+      <div class="wish-tools"><button type="button" class="key" data-ruopen="g"><span class="led"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7M12 14v7M3 12h7M14 12h7M5.6 5.6l5 5M13.4 13.4l5 5M18.4 5.6l-5 5M10.6 13.4l-5 5"/></svg>Ruleta: ¿a qué jugamos?</button></div>
       <p class="wish-msg" id="gWishMsg" aria-live="polite"></p>
       <ul class="wish" id="gWish"></ul>
     </section>
@@ -603,6 +666,28 @@ html[data-luces="off"] .g-res img,html[data-luces="off"] .g-res .ph{background:#
   <div class="lbx-top"><span id="lbxN"></span><button class="round" data-lbx="close" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="lbx-stage" id="lbxStage"><img id="lbxImg" alt=""><button class="round lbx-nav prev" data-lbx="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="round lbx-nav next" data-lbx="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
   <div class="lbx-bar"><button class="btn" data-lbx="del" id="lbxDel">Borrar foto</button></div>
+</div>
+<div class="ruleta" id="ruleta" hidden role="dialog" aria-modal="true" aria-labelledby="ruT">
+  <div class="ru-in">
+    <div class="ru-head"><h2 id="ruT">La ruleta</h2><button class="wr-close" data-ru="close" aria-label="Cerrar la ruleta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="ru-body">
+      <div>
+        <div class="ru-stage">
+          <div class="ru-pin" id="ruPin" aria-hidden="true"><svg viewBox="0 0 34 46"><path d="M17 44L3 14A14 14 0 1131 14z" fill="#ffd23f" stroke="#141416" stroke-width="3" stroke-linejoin="round"/><circle cx="17" cy="13" r="5" fill="#141416"/></svg></div>
+          <svg id="ruWheel" viewBox="-118 -118 236 236" role="img" aria-label="Ruleta"></svg>
+          <button type="button" class="ru-go" id="ruGo" data-ru="spin">GIRAR</button>
+        </div>
+        <div class="ru-win" id="ruWin" aria-live="polite"></div>
+      </div>
+      <div class="ru-side">
+        <h3>Qué entra en la ruleta</h3>
+        <p class="help" id="ruHelp"></p>
+        <ul class="ru-list" id="ruList"></ul>
+        <form class="ru-add" id="ruAdd" autocomplete="off"><label class="sr" for="ruAddIn">Añadir otra opción</label><input id="ruAddIn" maxlength="80" enterkeyhint="done"><button class="btn" type="submit">Añadir</button></form>
+        <div class="ru-quick"><button type="button" data-ru="all">Meter todas</button><button type="button" data-ru="none">Sacar todas</button></div>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="wrapd" id="wrapd" hidden role="dialog" aria-modal="true" aria-label="Resumen del año"><div class="wr-in" id="wrIn"></div></div>
 <div class="phase-sign" id="phaseSign" hidden><div class="ps" id="ps"></div></div>
@@ -2141,6 +2226,101 @@ $("#wrapKey").onclick=()=>wrapOpen(wrapSeason());
 $("#wrYears").addEventListener("click",e=>{ const b=e.target.closest("[data-wryear]"); if(b){ closeDrawer(); wrapOpen(+b.dataset.wryear); } });
 function wrapHash(){ const m=location.hash.match(/^#resumen-(\d{4})$/); if(m&&FB_KEY) setTimeout(()=>wrapOpen(+m[1]),900); }
 addEventListener("hashchange",wrapHash);
+
+/* ===================== RULETA (pending films / games) ===================== */
+// Pick from the pending list (and any extra option typed here); the wheel decides. Nothing is saved: it's for tonight.
+const RU={kind:null,opts:[],rot:0,spinning:false,win:null,raf:0};
+const RU_COL=["var(--orange)","var(--pink)","var(--yellow)","var(--f5)","var(--f4)","#5ec8ff"];
+const ruOn=()=>RU.opts.filter(o=>o.on);
+function ruPending(kind){
+  return kind==="g"
+    ? Object.entries(G).filter(([,g])=>g.p).sort((a,b)=>a[1].at-b[1].at).map(([id,g])=>({key:id,n:g.n,img:g.img||g.img2||"",on:true}))
+    : Object.entries(F).sort((a,b)=>a[1].at-b[1].at).map(([id,f])=>({key:id,n:f.n,img:f.img||"",on:true}));
+}
+function ruOpen(kind){
+  RU.kind=kind; RU.opts=ruPending(kind); RU.win=null; RU.rot=0; RU.from=document.activeElement;
+  $("#ruT").textContent=kind==="g"?"¿A qué jugamos?":"¿Qué vemos hoy?";
+  $("#ruAddIn").placeholder=kind==="g"?"Otro juego para la ruleta…":"Otra peli para la ruleta…";
+  $("#ruleta").hidden=false; $("#ruleta").classList.remove("spin","won"); document.documentElement.style.overflow="hidden";
+  ruRender(); setTimeout(()=>$("#ruleta .wr-close").focus({preventScroll:true}),40);
+}
+function ruClose(){ if(RU.spinning) return; cancelAnimationFrame(RU.raf); $("#ruleta").hidden=true; document.documentElement.style.overflow=""; RU.from?.focus?.(); }
+function ruWheel(){
+  const on=ruOn(), n=on.length, R=100, svg=$("#ruWheel");
+  let h=`<g id="ruRot" style="transform:rotate(${RU.rot}deg)">`;
+  if(n===0) h+=`<circle r="${R}" fill="var(--paper-2)"/>`;
+  else if(n===1) h+=`<g class="ru-seg"><circle r="${R}" style="fill:${RU_COL[0]}"/></g>`;
+  else {
+    const s=360/n, fs=n>14?6.5:n>9?8:n>5?9.5:11, max=Math.floor(58/(fs*.47));
+    on.forEach((o,i)=>{
+      let c=RU_COL[i%RU_COL.length]; if(i===n-1&&n%RU_COL.length===1) c=RU_COL[2];
+      const a0=(i*s-90)*Math.PI/180, a1=((i+1)*s-90)*Math.PI/180, mid=i*s+s/2-90;
+      const p=`M0 0L${(R*Math.cos(a0)).toFixed(2)} ${(R*Math.sin(a0)).toFixed(2)}A${R} ${R} 0 ${s>180?1:0} 1 ${(R*Math.cos(a1)).toFixed(2)} ${(R*Math.sin(a1)).toFixed(2)}Z`;
+      const t=o.n.length>max?o.n.slice(0,max-1).trimEnd()+"…":o.n;
+      h+=`<g class="ru-seg ${RU.win?(RU.win===o?"win":"dim"):""}"><path d="${p}" style="fill:${c}" stroke="#141416" stroke-width=".8"/>${Math.cos(mid*Math.PI/180)<-.01?`<text transform="rotate(${mid}) translate(${R-8} 0) rotate(180)" text-anchor="start" dominant-baseline="central" font-size="${fs}">${esc(t)}</text>`:`<text transform="rotate(${mid}) translate(${R-8} 0)" text-anchor="end" dominant-baseline="central" font-size="${fs}">${esc(t)}</text>`}</g>`;
+    });
+  }
+  h+=`</g><circle r="${R+1}" fill="none" stroke="#141416" stroke-width="3"/><circle r="${R+7}" fill="none" stroke="#17171a" stroke-width="10"/><g>`;
+  for(let k=0;k<24;k++){ const a=k*15*Math.PI/180; h+=`<circle class="ru-bulb" cx="${((R+7)*Math.cos(a)).toFixed(2)}" cy="${((R+7)*Math.sin(a)).toFixed(2)}" r="2.6"/>`; }
+  svg.innerHTML=h+"</g>";
+  $("#ruGo").disabled=n<2||RU.spinning;
+  $("#ruGo").textContent=n<2?"":"GIRAR";
+}
+function ruRender(){
+  ruWheel();
+  const on=ruOn();
+  $("#ruList").innerHTML=RU.opts.map((o,i)=>{ const k=on.indexOf(o); let c=k<0?"transparent":RU_COL[k%RU_COL.length]; if(k===on.length-1&&on.length%RU_COL.length===1&&on.length>1) c=RU_COL[2];
+    return `<li><label class="ru-opt"><input type="checkbox" data-ruon="${i}" ${o.on?"checked":""} ${RU.spinning?"disabled":""}><i class="sw" style="background:${c}"></i><span>${esc(o.n)}</span>${o.key?"":`<button type="button" class="x" data-rudel="${i}" aria-label="Quitar ${esc(o.n)} de la ruleta">×</button>`}</label></li>`; }).join("")
+    ||`<li class="help">Todavía no hay nada apuntado en la lista. Escribid abajo las opciones para la ruleta.</li>`;
+  $("#ruHelp").textContent=on.length<2?"Marca al menos dos para poder girar.":`${on.length} en la ruleta. Toca una para sacarla o volver a meterla.`;
+  if(!RU.win) $("#ruWin").innerHTML="";
+}
+function ruTick(){ const p=$("#ruPin"); p.classList.remove("flick"); void p.offsetWidth; p.classList.add("flick");
+  try{ const A=ruTick.ctx||(ruTick.ctx=new (window.AudioContext||window.webkitAudioContext)()), o=A.createOscillator(), g=A.createGain();
+    o.type="square"; o.frequency.value=1500; g.gain.setValueAtTime(.04,A.currentTime); g.gain.exponentialRampToValueAtTime(.0001,A.currentTime+.035);
+    o.connect(g).connect(A.destination); o.start(); o.stop(A.currentTime+.04); }catch(e){} }
+function ruSpin(){
+  const on=ruOn(), n=on.length; if(n<2||RU.spinning) return;
+  const r=new Uint32Array(2); crypto.getRandomValues(r);
+  const i=r[0]%n, s=360/n, at=i*s+s*(.15+.7*(r[1]/4294967296)); // where the pointer lands, inside segment i
+  const start=RU.rot, base=start-((start%360)+360)%360, turns=reduced()?2:6+(r[1]%3);
+  const end=base+turns*360+((360-at)%360);
+  const dur=reduced()?1200:5200+(r[0]%900), t0=performance.now(); let last=Math.floor((((360-start%360)%360)+360)%360/s);
+  RU.spinning=true; RU.win=null; $("#ruleta").classList.add("spin"); $("#ruleta").classList.remove("won"); ruRender();
+  const rot=$("#ruRot"), ease=t=>1-Math.pow(1-t,4);
+  const step=now=>{
+    const t=Math.min(1,(now-t0)/dur); RU.rot=start+(end-start)*ease(t); rot.style.transform=`rotate(${RU.rot}deg)`;
+    const seg=Math.floor((((360-RU.rot%360)%360)+360)%360/s); if(seg!==last){ last=seg; ruTick(); }
+    if(t<1){ RU.raf=requestAnimationFrame(step); return; }
+    RU.spinning=false; RU.win=on[i]; $("#ruleta").classList.remove("spin"); $("#ruleta").classList.add("won"); ruRender(); ruShowWin();
+  };
+  RU.raf=requestAnimationFrame(step);
+}
+function ruShowWin(){
+  const w=RU.win, g=RU.kind==="g";
+  const img=w.img?`<img src="${esc(w.img)}" alt="" referrerpolicy="no-referrer">`:"";
+  $("#ruWin").innerHTML=`<div class="ru-card ${img?"":"noimg"}" role="status">${img?`<span class="wimg">${img}</span>`:""}<small>${g?"Esta noche jugáis a":"Esta noche toca"}</small><b>${esc(w.n)}</b>
+    <div class="btns"><button type="button" class="btn btn-main" data-ru="spin">Girar otra vez</button><button type="button" class="btn" data-ru="drop">Sin esta, otra vez</button></div></div>`;
+  $("#ruWin").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"nearest"});
+}
+$("#ruleta").addEventListener("click",e=>{
+  const b=e.target.closest("[data-ru]");
+  if(b){ const a=b.dataset.ru;
+    if(a==="close") ruClose();
+    else if(a==="spin") ruSpin();
+    else if(a==="drop"&&RU.win&&!RU.spinning){ RU.win.on=false; RU.win=null; $("#ruleta").classList.remove("won"); ruRender(); if(ruOn().length>=2) ruSpin(); }
+    else if(a==="all"&&!RU.spinning){ RU.opts.forEach(o=>o.on=true); RU.win=null; ruRender(); }
+    else if(a==="none"&&!RU.spinning){ RU.opts.forEach(o=>o.on=false); RU.win=null; ruRender(); }
+    return; }
+  const d=e.target.closest("[data-rudel]"); if(d&&!RU.spinning){ e.preventDefault(); RU.opts.splice(+d.dataset.rudel,1); RU.win=null; ruRender(); }
+});
+$("#ruleta").addEventListener("change",e=>{ const i=e.target.dataset?.ruon; if(i===undefined||RU.spinning) return; RU.opts[+i].on=e.target.checked; RU.win=null; $("#ruleta").classList.remove("won"); ruRender(); $(`[data-ruon="${i}"]`)?.focus(); });
+$("#ruAdd").addEventListener("submit",e=>{ e.preventDefault(); const v=$("#ruAddIn").value.trim().slice(0,80); if(!v||RU.spinning) return;
+  if(RU.opts.some(o=>o.n.toLowerCase()===v.toLowerCase())){ const o=RU.opts.find(o=>o.n.toLowerCase()===v.toLowerCase()); o.on=true; }
+  else RU.opts.push({key:"",n:v,img:"",on:true});
+  $("#ruAddIn").value=""; RU.win=null; ruRender(); });
+addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#ruleta").hidden) ruClose(); });
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-ruopen]"); if(b) ruOpen(b.dataset.ruopen); });
 
 /* ===================== BOOT ===================== */
 const saved=lsRead(); if(saved) S=sanitize(saved);
