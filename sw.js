@@ -1,6 +1,6 @@
 // Cine Potxolos service worker: the page always tries the network first (so updates arrive at once),
 // posters and icons come from cache. Firebase and Letterboxd (other origins) are never touched.
-const CACHE = "potxolos-v6";
+const CACHE = "potxolos-v7";
 const SHELL = ["./", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", e => {

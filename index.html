@@ -559,6 +559,39 @@ html[data-luces="off"] .g-res img,html[data-luces="off"] .g-res .ph{background:#
 .ru-quick{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}
 .ru-quick button{background:none;border:0;padding:4px 0;font-family:var(--label);font-weight:700;font-size:15px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .ru-empty{color:var(--on-carpet);text-align:center;font-size:16px;margin:0}
+.ru-tray{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:10px}
+.ru-c{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:4px 12px;align-items:center;background:var(--paper);color:var(--ink);border-radius:4px;padding:8px 10px 8px 8px;box-shadow:0 3px 0 rgba(0,0,0,.3),inset 0 0 0 1px rgba(0,0,0,.08);border-left:6px dashed var(--ink-2);cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y;transition:opacity .2s,transform .2s}
+.ru-c:hover{transform:translateX(-3px)}
+.ru-c.in{border-left:6px solid var(--sw,var(--orange));cursor:default;background:color-mix(in oklab,var(--paper) 82%,var(--sw,var(--orange)))}
+.ru-c.in:hover{transform:none}
+.ru-c.lifting{opacity:.35}
+.ru-c .wimg{width:56px;height:80px;border-radius:2px;overflow:hidden;background:repeating-linear-gradient(135deg,#1c1d22 0 8px,#24252b 8px 16px)}
+.ru-c .wimg img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none}
+.ru-c .tx{min-width:0}
+.ru-c b{display:block;font-weight:800;font-size:16px;line-height:1.15;overflow-wrap:anywhere}
+.ru-c small{display:block;font-family:var(--label);font-weight:600;font-size:13.5px;color:var(--ink-2);margin-top:2px}
+.ru-c em{display:inline-block;margin-top:5px;font-style:normal;font-family:var(--label);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:var(--sw,var(--orange));color:#141416;padding:2px 7px;border-radius:999px}
+.ru-acts{display:flex;align-items:center;gap:2px}
+.ru-tg{min-height:40px;padding:0 12px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-family:var(--label);font-weight:800;font-size:14px;white-space:nowrap;cursor:pointer}
+.ru-c:not(.in) .ru-tg{background:var(--ink);color:var(--paper)}
+.ru-x{width:36px;height:36px;border:0;border-radius:50%;background:none;color:var(--ink-2);font-size:20px;line-height:1;cursor:pointer}
+.ru-x:hover{background:rgba(0,0,0,.08);color:var(--ink)}
+.ru-ghost{position:fixed;left:0;top:0;z-index:99;margin:0;list-style:none;pointer-events:none;cursor:grabbing;box-shadow:0 26px 40px -12px rgba(0,0,0,.7);transition:none;opacity:.97}
+.ru-ghost.over{outline:3px solid var(--yellow)}
+.ruleta.dragging,.ruleta.dragging *{cursor:grabbing!important}
+.ru-stage::after{content:"";position:absolute;inset:-3%;border-radius:50%;pointer-events:none;box-shadow:0 0 0 0 rgba(255,210,63,0);transition:box-shadow .2s}
+.ruleta.dragging .ru-stage::after{box-shadow:0 0 0 6px rgba(255,210,63,.35)}
+.ru-stage.over::after{box-shadow:0 0 0 12px rgba(255,210,63,.8),0 0 60px 10px rgba(255,210,63,.5)}
+.ru-stage.got svg{animation:ruGot .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes ruGot{40%{transform:scale(1.04)}}
+.ru-hint text{font-family:var(--sign);fill:#ffd23f;stroke:#141416;stroke-width:3px;paint-order:stroke;stroke-linejoin:round}
+.ru-hint text+text{font-family:var(--label);font-weight:700;fill:#e9ecf7}
+@media (max-width:819px){
+  .ru-body>div:first-child{position:sticky;top:0;z-index:3;margin:0 -16px;padding:4px 16px 10px;background:linear-gradient(var(--carpet) 85%,transparent)}
+  .ru-stage{width:min(100%,300px)}
+  .ru-card{padding:8px 12px 8px 8px}.ru-card .wimg{width:56px;height:80px}.ru-card b{font-size:19px}
+}
+html[data-luces="off"] .ru-x:hover{background:rgba(255,255,255,.08)}
 html[data-luces="off"] .ru-add input{background:#141317}
 html[data-luces="off"] .ru-opt .x:hover{background:rgba(255,255,255,.08)}
 @media (prefers-reduced-motion:reduce){.ruleta.spin .ru-bulb,.ruleta.won .ru-bulb{animation:none}}
@@ -680,9 +713,9 @@ html[data-luces="off"] .ru-opt .x:hover{background:rgba(255,255,255,.08)}
         <div class="ru-win" id="ruWin" aria-live="polite"></div>
       </div>
       <div class="ru-side">
-        <h3>Qué entra en la ruleta</h3>
+        <h3>Pendientes</h3>
         <p class="help" id="ruHelp"></p>
-        <ul class="ru-list" id="ruList"></ul>
+        <ul class="ru-tray" id="ruList"></ul>
         <form class="ru-add" id="ruAdd" autocomplete="off"><label class="sr" for="ruAddIn">Añadir otra opción</label><input id="ruAddIn" maxlength="80" enterkeyhint="done"><button class="btn" type="submit">Añadir</button></form>
         <div class="ru-quick"><button type="button" data-ru="all">Meter todas</button><button type="button" data-ru="none">Sacar todas</button></div>
       </div>
@@ -2234,9 +2267,10 @@ const RU_COL=["var(--orange)","var(--pink)","var(--yellow)","var(--f5)","var(--f
 const ruOn=()=>RU.opts.filter(o=>o.on);
 function ruPending(kind){
   return kind==="g"
-    ? Object.entries(G).filter(([,g])=>g.p).sort((a,b)=>a[1].at-b[1].at).map(([id,g])=>({key:id,n:g.n,img:g.img||g.img2||"",on:true}))
-    : Object.entries(F).sort((a,b)=>a[1].at-b[1].at).map(([id,f])=>({key:id,n:f.n,img:f.img||"",on:true}));
+    ? Object.entries(G).filter(([,g])=>g.p).sort((a,b)=>a[1].at-b[1].at).map(([id,g])=>({key:id,n:g.n,img:g.img||g.img2||"",meta:[g.y,g.dev].filter(Boolean).join(" · "),on:false}))
+    : Object.entries(F).sort((a,b)=>a[1].at-b[1].at).map(([id,f])=>({key:id,n:f.n,img:f.img||"",meta:[f.y,f.dir,f.m?fmtMin(f.m):""].filter(Boolean).join(" · "),on:false}));
 }
+const ruColor=(on,k)=>{ if(k<0) return ""; let c=RU_COL[k%RU_COL.length]; if(k===on.length-1&&on.length>1&&on.length%RU_COL.length===1) c=RU_COL[2]; return c; };
 function ruOpen(kind){
   RU.kind=kind; RU.opts=ruPending(kind); RU.win=null; RU.rot=0; RU.from=document.activeElement;
   $("#ruT").textContent=kind==="g"?"¿A qué jugamos?":"¿Qué vemos hoy?";
@@ -2248,7 +2282,7 @@ function ruClose(){ if(RU.spinning) return; cancelAnimationFrame(RU.raf); $("#ru
 function ruWheel(){
   const on=ruOn(), n=on.length, R=100, svg=$("#ruWheel");
   let h=`<g id="ruRot" style="transform:rotate(${RU.rot}deg)">`;
-  if(n===0) h+=`<circle r="${R}" fill="var(--paper-2)"/>`;
+  if(n===0) h+=`<circle r="${R}" fill="#1d1c22"/><circle r="${R-10}" fill="none" stroke="#ffd23f" stroke-width="1.6" stroke-dasharray="5 5" opacity=".7"/>`;
   else if(n===1) h+=`<g class="ru-seg"><circle r="${R}" style="fill:${RU_COL[0]}"/></g>`;
   else {
     const s=360/n, fs=n>14?6.5:n>9?8:n>5?9.5:11, max=Math.floor(58/(fs*.47));
@@ -2262,6 +2296,7 @@ function ruWheel(){
   }
   h+=`</g><circle r="${R+1}" fill="none" stroke="#141416" stroke-width="3"/><circle r="${R+7}" fill="none" stroke="#17171a" stroke-width="10"/><g>`;
   for(let k=0;k<24;k++){ const a=k*15*Math.PI/180; h+=`<circle class="ru-bulb" cx="${((R+7)*Math.cos(a)).toFixed(2)}" cy="${((R+7)*Math.sin(a)).toFixed(2)}" r="2.6"/>`; }
+  if(n<2) h+=`</g><g class="ru-hint"><text y="-58" text-anchor="middle" font-size="12">${n?"Una más para girar":"Arrastra aquí"}</text><text y="-43" text-anchor="middle" font-size="9">${n?"arrastra otra desde la lista":`${RU.kind==="g"?"los juegos":"las pelis"} que quieras`}</text>`;
   svg.innerHTML=h+"</g>";
   $("#ruGo").disabled=n<2||RU.spinning;
   $("#ruGo").textContent=n<2?"":"GIRAR";
@@ -2269,10 +2304,15 @@ function ruWheel(){
 function ruRender(){
   ruWheel();
   const on=ruOn();
-  $("#ruList").innerHTML=RU.opts.map((o,i)=>{ const k=on.indexOf(o); let c=k<0?"transparent":RU_COL[k%RU_COL.length]; if(k===on.length-1&&on.length%RU_COL.length===1&&on.length>1) c=RU_COL[2];
-    return `<li><label class="ru-opt"><input type="checkbox" data-ruon="${i}" ${o.on?"checked":""} ${RU.spinning?"disabled":""}><i class="sw" style="background:${c}"></i><span>${esc(o.n)}</span>${o.key?"":`<button type="button" class="x" data-rudel="${i}" aria-label="Quitar ${esc(o.n)} de la ruleta">×</button>`}</label></li>`; }).join("")
+  const touch=matchMedia("(pointer:coarse)").matches;
+  $("#ruList").innerHTML=RU.opts.map((o,i)=>{ const c=ruColor(on,on.indexOf(o));
+    return `<li class="ru-c ${o.on?"in":""}" data-rui="${i}" ${c?`style="--sw:${c}"`:""}><span class="wimg">${o.img?`<img src="${esc(o.img)}" alt="" draggable="false" referrerpolicy="no-referrer">`:""}</span>
+      <span class="tx"><b>${esc(o.n)}</b>${o.meta?`<small>${esc(o.meta)}</small>`:""}${o.on?`<em>En la ruleta</em>`:""}</span>
+      <span class="ru-acts"><button type="button" class="ru-tg" data-rutog="${i}" aria-pressed="${o.on}" ${RU.spinning?"disabled":""}>${o.on?"Quitar":"＋ A la ruleta"}</button>${o.key?"":`<button type="button" class="ru-x" data-rudel="${i}" aria-label="Borrar ${esc(o.n)}" ${RU.spinning?"disabled":""}>×</button>`}</span></li>`; }).join("")
     ||`<li class="help">Todavía no hay nada apuntado en la lista. Escribid abajo las opciones para la ruleta.</li>`;
-  $("#ruHelp").textContent=on.length<2?"Marca al menos dos para poder girar.":`${on.length} en la ruleta. Toca una para sacarla o volver a meterla.`;
+  $("#ruHelp").textContent=on.length<2
+    ?(touch?"Mantén pulsada una y arrástrala a la ruleta, o toca «＋ A la ruleta».":"Arrastra a la ruleta las que quieras, o pulsa «＋ A la ruleta».")
+    :`${on.length} en la ruleta.`;
   if(!RU.win) $("#ruWin").innerHTML="";
 }
 function ruTick(){ const p=$("#ruPin"); p.classList.remove("flick"); void p.offsetWidth; p.classList.add("flick");
@@ -2312,9 +2352,46 @@ $("#ruleta").addEventListener("click",e=>{
     else if(a==="all"&&!RU.spinning){ RU.opts.forEach(o=>o.on=true); RU.win=null; ruRender(); }
     else if(a==="none"&&!RU.spinning){ RU.opts.forEach(o=>o.on=false); RU.win=null; ruRender(); }
     return; }
-  const d=e.target.closest("[data-rudel]"); if(d&&!RU.spinning){ e.preventDefault(); RU.opts.splice(+d.dataset.rudel,1); RU.win=null; ruRender(); }
+  const d=e.target.closest("[data-rudel]"); if(d&&!RU.spinning){ RU.opts.splice(+d.dataset.rudel,1); RU.win=null; $("#ruleta").classList.remove("won"); ruRender(); return; }
+  const t=e.target.closest("[data-rutog]"); if(t&&!RU.spinning){ const i=+t.dataset.rutog, o=RU.opts[i]; o.on=!o.on; RU.win=null; $("#ruleta").classList.remove("won"); ruRender(); if(o.on) ruGot(); $(`[data-rutog="${i}"]`)?.focus({preventScroll:true}); }
 });
-$("#ruleta").addEventListener("change",e=>{ const i=e.target.dataset?.ruon; if(i===undefined||RU.spinning) return; RU.opts[+i].on=e.target.checked; RU.win=null; $("#ruleta").classList.remove("won"); ruRender(); $(`[data-ruon="${i}"]`)?.focus(); });
+/* drag a card onto the wheel: mouse at once, finger after a short press (so the list still scrolls) */
+let ruDrag=null;
+function ruGot(){ const st=$(".ru-stage"); st.classList.remove("got"); void st.offsetWidth; st.classList.add("got"); }
+function ruOver(x,y){ const r=$(".ru-stage").getBoundingClientRect(); return Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))<r.width/2+28; }
+function ruStart(x,y){
+  const d=ruDrag; d.live=true; const r=d.c.getBoundingClientRect(), g=d.c.cloneNode(true);
+  g.classList.add("ru-ghost"); g.removeAttribute("data-rui"); g.style.width=r.width+"px"; document.body.appendChild(g);
+  d.g=g; d.ox=x-r.left; d.oy=y-r.top; d.c.classList.add("lifting"); $("#ruleta").classList.add("dragging"); navigator.vibrate?.(12); ruMove(x,y);
+}
+function ruMove(x,y){
+  const d=ruDrag, o=ruOver(x,y); d.g.style.transform=`translate(${x-d.ox}px,${y-d.oy}px) rotate(${o?0:-3}deg) scale(${o?.9:1.02})`;
+  $(".ru-stage").classList.toggle("over",o); d.g.classList.toggle("over",o);
+  const box=$("#ruleta"); if(y<80) box.scrollTop-=14; else if(y>innerHeight-80) box.scrollTop+=14;
+}
+function ruStop(drop,x,y){
+  const d=ruDrag; ruDrag=null; if(!d) return; clearTimeout(d.t); if(!d.live) return;
+  const ok=drop&&ruOver(x,y); d.g.remove(); d.c.classList.remove("lifting"); $("#ruleta").classList.remove("dragging"); $(".ru-stage").classList.remove("over");
+  if(ok&&!RU.spinning){ RU.opts[d.i].on=true; RU.win=null; $("#ruleta").classList.remove("won"); ruRender(); ruGot(); }
+}
+$("#ruList").addEventListener("pointerdown",e=>{
+  const c=e.target.closest("[data-rui]"); if(!c||e.target.closest("button")||RU.spinning||e.button>0) return;
+  const i=+c.dataset.rui; if(RU.opts[i].on) return;
+  if(e.pointerType==="mouse") e.preventDefault();
+  ruDrag={i,c,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,id:e.pointerId,touch:e.pointerType!=="mouse",live:false};
+  if(ruDrag.touch) ruDrag.t=setTimeout(()=>{ if(ruDrag&&!ruDrag.live) ruStart(ruDrag.x,ruDrag.y); },260);
+});
+addEventListener("pointermove",e=>{
+  const d=ruDrag; if(!d||e.pointerId!==d.id) return; d.x=e.clientX; d.y=e.clientY;
+  if(!d.live){ const m=Math.hypot(e.clientX-d.x0,e.clientY-d.y0);
+    if(d.touch){ if(m>10){ clearTimeout(d.t); ruDrag=null; } return; }
+    if(m<6) return; ruStart(e.clientX,e.clientY); }
+  ruMove(e.clientX,e.clientY);
+});
+addEventListener("pointerup",e=>{ if(ruDrag&&e.pointerId===ruDrag.id) ruStop(true,e.clientX,e.clientY); });
+addEventListener("pointercancel",e=>{ if(ruDrag&&e.pointerId===ruDrag.id) ruStop(false); });
+document.addEventListener("touchmove",e=>{ if(ruDrag?.live) e.preventDefault(); },{passive:false});
+$("#ruList").addEventListener("contextmenu",e=>{ if(e.target.closest("[data-rui]")) e.preventDefault(); });
 $("#ruAdd").addEventListener("submit",e=>{ e.preventDefault(); const v=$("#ruAddIn").value.trim().slice(0,80); if(!v||RU.spinning) return;
   if(RU.opts.some(o=>o.n.toLowerCase()===v.toLowerCase())){ const o=RU.opts.find(o=>o.n.toLowerCase()===v.toLowerCase()); o.on=true; }
   else RU.opts.push({key:"",n:v,img:"",on:true});
