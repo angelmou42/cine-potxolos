@@ -50,11 +50,12 @@ for (const [id, g] of Object.entries(G)) WHO.forEach((k, w) => {
 
 // Photos in the game albums: only the keys are read (cheap); "who" is read just for new ones.
 // A photo uploaded from a phone that has not said who it is (no notices set up) goes to both.
-const toAll = [];
+const toAll = [], phAll = [];
 now.ph = {}; now.phOn = 1;
 for (const gid of Object.keys(await shallow("fotos"))) {
   const pids = Object.keys(await shallow(`fotos/${gid}`)); if (!pids.length) continue;
   now.ph[gid] = Object.fromEntries(pids.map(p => [p, 1]));
+  phAll.push(...pids.map(p => ({ gid, p })));
   if (!prev?.phOn) continue; // first run with photos: just remember them
   const fresh = pids.filter(p => !prev.ph?.[gid]?.[p]); if (!fresh.length) continue;
   const by = { 0: 0, 1: 0, x: 0 };
@@ -72,6 +73,38 @@ now.wrap = prev?.wrap || 0;
 if (wrapY && now.wrap < wrapY) {
   now.wrap = wrapY;
   if (prev) toAll.push({ title: `Ya está vuestro ${wrapY} en el videoclub 🎬`, body: "Horas juntos, lo mejor del año y en qué no estáis de acuerdo.", url: `./#resumen-${wrapY}`, tag: `resumen-${wrapY}` });
+}
+
+// "Un día como hoy": once a day from 10:00 (Madrid time), if you watched, finished, started or photographed something on this date in an earlier year.
+const madrid = t => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(t); // YYYY-MM-DD
+const today = madrid(new Date()), md = today.slice(5), Y = +today.slice(0, 4);
+now.memo = prev?.memo || "";
+if (P.hour >= 10 && now.memo !== today) {
+  now.memo = today;
+  const old = d => typeof d === "string" && d.slice(5) === md && +d.slice(0, 4) > 2000 && +d.slice(0, 4) < Y, mem = [];
+  for (const d of D) { const it = items[d.id]; if (it && it.st === "seen" && old(it.d)) mem.push({ y: +it.d.slice(0, 4), t: `visteis ${d.es}` }); }
+  const la = Object.values(at(diary, 0) || {}), lb = Object.values(at(diary, 1) || {}), seen = new Set();
+  for (const e of la) {
+    if (!e?.t || !e.d || match(e.t, e.y)) continue;
+    for (const e2 of lb) {
+      if (!e2?.t || !e2.d || norm(e2.t) !== norm(e.t) || +e2.y !== +e.y || Math.abs(dn(e2.d) - dn(e.d)) > 1) continue;
+      const day = e.d < e2.d ? e.d : e2.d, k = norm(e.t) + day;
+      if (old(day) && !seen.has(k)) { seen.add(k); mem.push({ y: +day.slice(0, 4), t: `visteis juntos ${e.t}` }); }
+    }
+  }
+  for (const g of Object.values(G)) { if (!g?.n) continue;
+    if (!g.p && old(g.d)) mem.push({ y: +g.d.slice(0, 4), t: `terminasteis ${g.n}` });
+    if (old(g.s)) mem.push({ y: +g.s.slice(0, 4), t: `empezasteis ${g.n}` }); }
+  const phs = {};
+  for (const { gid, p } of phAll) { const t = parseInt(p.slice(1, 9), 36); if (!t) continue; const d = madrid(new Date(t)); if (old(d)) { const k = d.slice(0, 4) + "|" + gid; phs[k] = (phs[k] || 0) + 1; } }
+  for (const [k, n] of Object.entries(phs)) { const [y, gid] = k.split("|"); mem.push({ y: +y, t: `subisteis ${n === 1 ? "una foto" : `${n} fotos`} de ${G[gid]?.n || "un juego"}` }); }
+  if (mem.length && prev) {
+    mem.sort((a, b) => b.y - a.y); const y0 = mem[0].y, ago = y => Y - y === 1 ? "hace un año" : `hace ${Y - y} años`;
+    const cap = t => t[0].toUpperCase() + t.slice(1);
+    const rest = mem.slice(1, 4).map(m => m.y === y0 ? `Y ${m.t}.` : `${cap(ago(m.y))}, ${m.t}.`);
+    if (mem.length > 4) rest.push(`Y ${mem.length - 4} cosas más.`);
+    toAll.push({ title: `${cap(ago(y0))} ${mem[0].t} 🎞️`, body: rest.join("\n") || "Un día como hoy, en el videoclub.", url: "./#recuerdo", tag: `recuerdo-${today}` });
+  }
 }
 
 // Build the notices each person causes (they go to the OTHER person's phones)

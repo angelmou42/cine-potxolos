@@ -596,6 +596,43 @@ html[data-luces="off"] .ru-add input{background:#141317}
 html[data-luces="off"] .ru-opt .x:hover{background:rgba(255,255,255,.08)}
 @media (prefers-reduced-motion:reduce){.ruleta.spin .ru-bulb,.ruleta.won .ru-bulb{animation:none}}
 
+/* ---------- Jugando ahora: games you have started ---------- */
+.wcard.now{--wc:var(--orange);border-left-style:solid;padding-right:88px}
+.wday{position:absolute;top:10px;right:12px;width:64px;text-align:center;background:#141416;color:var(--yellow);border-radius:4px;padding:5px 4px 6px;transform:rotate(3deg);box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.wcard .wday small{display:block;margin:0;font-family:var(--label);font-weight:800;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow)}
+.wday b{display:block;font-family:var(--sign);font-weight:400;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.wcard small.wsince{color:var(--ink);font-weight:700}
+.ru-ok{font-family:var(--label);font-weight:800;font-size:15px}
+/* ---------- Un día como hoy ---------- */
+.memo{position:relative;margin-top:14px;background:var(--paper);color:var(--ink);border-radius:6px;padding:12px 16px 14px 22px;box-shadow:0 14px 26px -16px rgba(0,0,0,.7);border-left:8px solid var(--pink)}
+.memo[hidden]{display:none}
+.memo-h{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding-right:44px}
+.memo-h b{font-family:var(--sign);font-weight:400;font-size:20px}
+.memo-h small{font-family:var(--label);font-weight:700;font-size:16px;color:var(--ink-2)}
+.memo-x{position:absolute;top:6px;right:6px;width:42px;height:42px;border:0;border-radius:50%;background:none;color:var(--ink-2);font-size:24px;line-height:1;cursor:pointer}
+.memo-x:hover{background:rgba(0,0,0,.08);color:var(--ink)}
+.memo-yr{margin-top:10px}
+.memo-yr>small{font-family:var(--label);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.memo-list{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+.memo-it{flex:none;display:flex;align-items:center;gap:10px;max-width:300px;background:var(--paper-2);border-radius:4px;padding:6px 14px 6px 6px}
+.memo-it .mi{flex:none;width:44px;height:64px;border-radius:2px;overflow:hidden;background:repeating-linear-gradient(135deg,#1c1d22 0 8px,#24252b 8px 16px)}
+.memo-it .mi img{width:100%;height:100%;object-fit:cover;display:block}
+.memo-it .tx{min-width:0}
+.memo-it .tx span{display:block;font-family:var(--label);font-weight:700;font-size:13px;color:var(--ink-2)}
+.memo-it b{display:block;font-weight:800;font-size:15px;line-height:1.15;overflow-wrap:anywhere}
+.mph{flex:none;display:flex;gap:6px;padding:2px}
+.mph button{width:60px;height:60px;padding:3px;border:0;background:#fbfaf4;box-shadow:0 2px 5px rgba(0,0,0,.35);transform:rotate(var(--r,0deg));cursor:pointer}
+.mph button img{width:100%;height:100%;object-fit:cover;display:block;background:#ddd}
+.mph .more{align-self:center;font-family:var(--label);font-weight:800;font-size:15px;color:var(--ink-2)}
+html[data-luces="off"] .memo-x:hover{background:rgba(255,255,255,.08)}
+/* ---------- the year's album in the summary ---------- */
+.tk.alb .collage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px;margin:14px 0 4px}
+.pol{position:relative;border:0;padding:5px 5px 20px;background:#fbfaf4;box-shadow:0 4px 10px rgba(0,0,0,.3);transform:rotate(var(--r,0deg));cursor:pointer;transition:transform .2s}
+.pol:hover{transform:rotate(0deg) scale(1.04);z-index:1}
+.pol img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#ddd}
+.pol span{position:absolute;left:5px;right:5px;bottom:3px;font-family:var(--label);font-weight:700;font-size:12px;color:#33333a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.tk.alb .btns{margin-top:12px}
+
 @media (min-width:1500px){.wrap{max-width:1320px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
@@ -624,6 +661,8 @@ html[data-luces="off"] .ru-opt .x:hover{background:rgba(255,255,255,.08)}
       <button class="key" id="openSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="kl">Ajustes</span></button>
     </div>
   </section>
+
+  <section class="memo" id="memo" hidden aria-labelledby="memoH"></section>
 
   <nav class="aisles" aria-label="Secciones">
     <button class="aisle" data-view="ucm" aria-pressed="true"><span class="xl">Maratón </span>Marvel</button>
@@ -673,8 +712,12 @@ html[data-luces="off"] .ru-opt .x:hover{background:rgba(255,255,255,.08)}
     <section class="shelf" id="gShelf" aria-label="Juegos terminados"></section>
     <p class="end" id="gEmpty" hidden></p>
     <section class="counter" id="gCounter" aria-live="polite"></section>
+    <section class="wishes" id="gNowSec" hidden aria-labelledby="gnH">
+      <div class="shelf-head"><h2 id="gnH">Jugando ahora</h2><p>Los juegos que ya habéis empezado, con los días que lleváis. Al terminarlo, tocad «¡Terminado!».</p></div>
+      <ul class="wish" id="gNow"></ul>
+    </section>
     <section class="wishes" aria-labelledby="gwH">
-      <div class="shelf-head"><h2 id="gwH">Queremos jugar</h2><p>Los juegos pendientes. Cuando terminéis uno, tocad «¡Terminado!» y pasa a la estantería.</p></div>
+      <div class="shelf-head"><h2 id="gwH">Queremos jugar</h2><p>Los juegos pendientes. Al empezar uno, tocad «Empezamos» y se cuentan los días; al terminarlo, «¡Terminado!» y pasa a la estantería.</p></div>
       <form class="g-add" id="gWishAdd" autocomplete="off" onsubmit="return false">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <label class="sr" for="gWishIn">Apuntar un juego para jugar</label>
@@ -1202,6 +1245,7 @@ function gClean(o){
     if(v.r&&typeof v.r==="object") x.r=[rv(v.r[0]),rv(v.r[1])];
     if(v.rv&&typeof v.rv==="object") x.rv=[String(v.rv[0]||"").slice(0,4000),String(v.rv[1]||"").slice(0,4000)];
     if(v.p) x.p=1;
+    if(typeof v.s==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v.s)) x.s=v.s;
     out[id]=x; }
   return out;
 }
@@ -1234,8 +1278,8 @@ function gStream(){
   }catch(e){}
 }
 function gRefresh(){
-  const ae=document.activeElement;
-  if(ae&&ae.matches("[data-grv],[data-gdate],[data-ghours],#gAddIn")){ $("#gCountTab").textContent=gList().length||""; renderGWish(); if(view==="juegos") renderChrome(); return; }
+  memoSoon(); const ae=document.activeElement;
+  if(ae&&ae.matches("[data-grv],[data-gdate],[data-gsdate],[data-ghours],#gAddIn")){ $("#gCountTab").textContent=gList().length||""; renderGWish(); if(view==="juegos") renderChrome(); return; }
   renderGames(); if(view==="juegos") renderChrome();
 }
 function gCover(g,extra=""){
@@ -1262,7 +1306,7 @@ function renderGames(anim){
   else {
     const num=String(list.indexOf(g)+1).padStart(2,"0"), a=gAvg(g), r=g.r||[0,0], rvs=g.rv||["",""];
     const front=gCover(g)||`<div class="noimg">${esc(g.n)}</div>`;
-    const more=[["Estudio",g.dev],["Plataformas",g.plat],["Género",g.gen]].filter(x=>x[1]);
+    const more=[["Del primer día al final",g.s&&g.d&&g.d>=g.s?(n=>`${n} ${n===1?"día":"días"}`)(gDays(g)):""],["Estudio",g.dev],["Plataformas",g.plat],["Género",g.gen]].filter(x=>x[1]);
     el.innerHTML=`
     <article class="box ${anim==="pull"?"pull":""}" style="--pc:var(--f5)" aria-label="${esc(g.n)}">
       <div class="front">${front}<div class="hinge"><b aria-hidden="true">▶</b><span>Terminado</span><i>nº ${num}</i></div><div class="sticker"><b>FIN</b><small>${esc(fmtDate(g.d))}</small></div></div>
@@ -1280,6 +1324,7 @@ function renderGames(anim){
         ${!g.img&&!g.img2&&!g.sx?`<p class="note">${ICON.info}<span>Buscando la portada y la ficha en Steam: llegan solas en unos minutos.</span></p>`:""}
         <div class="ficha">
           <h3>Ficha de la partida</h3>
+          <div class="f-row"><label for="gs-${g.id}">Lo empezamos el</label><input type="date" id="gs-${g.id}" data-gsdate="${g.id}" value="${esc(g.s||"")}"></div>
           <div class="f-row"><label for="gd-${g.id}">Lo terminamos el</label><input type="date" id="gd-${g.id}" data-gdate="${g.id}" value="${esc(g.d||"")}"></div>
           <div class="f-row"><label for="gh-${g.id}">Horas jugadas</label><input type="text" id="gh-${g.id}" data-ghours="${g.id}" inputmode="decimal" maxlength="7" value="${g.h?fmtScore(g.h):""}" placeholder="0"></div>
           <div class="rates">${[0,1].map(w=>{ const nm=w?nameB():nameA();
@@ -1419,6 +1464,7 @@ function setDigits(el,str){
   el.dataset.v=str;
 }
 function renderChrome(){
+  memoSoon();
   const title=S.title.trim()||"Nuestro maratón Marvel";
   $("#mTitle").textContent=title; document.title=title;
   const has=S.a.trim()||S.b.trim();
@@ -1536,7 +1582,8 @@ document.addEventListener("click",e=>{
     commit(); renderCharts(); }
 });
 document.addEventListener("input",e=>{
-  const grv=e.target.dataset?.grv, gdt=e.target.dataset?.gdate, gh=e.target.dataset?.ghours;
+  const grv=e.target.dataset?.grv, gdt=e.target.dataset?.gdate, gh=e.target.dataset?.ghours, gsd=e.target.dataset?.gsdate;
+  if(gsd){ if(G[gsd]){ const v=e.target.value; gSet(gsd,"s",/^\d{4}-\d{2}-\d{2}$/.test(v)?v:null); memoSoon(); } return; }
   if(grv){ const [id,w]=grv.split("|"); const g=G[id]; if(g){ const a=g.rv?[...g.rv]:["",""]; a[+w]=e.target.value.slice(0,4000); g.rv=a; gSave(); gSetLater(id,`rv/${w}`,a[+w]); } return; }
   if(gdt){ if(G[gdt]){ const v=e.target.value; gSet(gdt,"d",/^\d{4}-\d{2}-\d{2}$/.test(v)?v:null); const sm=document.querySelector("#gCounter .sticker small"); if(sm) sm.textContent=fmtDate(v); } return; }
   if(gh){ if(G[gh]){ const v=Math.round((parseFloat(String(e.target.value).replace(",","."))||0)*2)/2; G[gh].h=v; gSave(); gSetLater(gh,"h",v>0&&v<10000?v:null); if(view==="juegos") renderChrome(); } return; }
@@ -1546,7 +1593,7 @@ document.addEventListener("input",e=>{
     const sm=document.querySelector(".sticker small"); if(sm) sm.textContent=fmtDate(it.d); }
 });
 
-document.addEventListener("change",e=>{ if(e.target.matches("[data-gdate],[data-ghours]")) setTimeout(()=>renderGames(),0); });
+document.addEventListener("change",e=>{ if(e.target.matches("[data-gdate],[data-gsdate],[data-ghours]")) setTimeout(()=>renderGames(),0); });
 
 /* ===================== PERSISTENCE ===================== */
 /* Shared store: Firebase Realtime Database (REST + live stream). Empty = not configured. */
@@ -1588,7 +1635,7 @@ function fbAdopt(){
   const merged=Object.assign({},remote); for(const k in pend){ if(pend[k]===null) delete merged[k]; else merged[k]=pend[k]; }
   fbSent=remote; S=sanitize(unflat(merged)); lsWrite();
   const ae=document.activeElement;
-  if(ae && (ae.matches("[data-note]")||ae.matches("[data-date]")||ae.matches("#inTitle,#inA,#inB,[data-grv],[data-gdate],[data-ghours],#gAddIn"))){ renderChrome(); renderCharts(); return; }
+  if(ae && (ae.matches("[data-note]")||ae.matches("[data-date]")||ae.matches("#inTitle,#inA,#inB,[data-grv],[data-gdate],[data-gsdate],[data-ghours],#gAddIn"))){ renderChrome(); renderCharts(); return; }
   normalizeReach(); render(); fillSettings();
 }
 let lbTree=null, lbT=null;
@@ -1950,19 +1997,21 @@ let wSure=null;
 function wishCard(kind,id,x){
   const img=kind==="g"?gCover(x,'loading="lazy"'):(x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"");
   const meta=kind==="g"?[x.y,x.dev].filter(Boolean).join(" · "):[x.y,x.dir,x.m?fmtMin(x.m):""].filter(Boolean).join(" · ");
-  const sure=wSure===kind+"|"+id;
-  return `<li class="wcard" style="--wc:${kind==="g"?"var(--f5)":"var(--pink)"}"><span class="wimg">${img}</span>
-    <span><b>${esc(x.n)}</b>${meta?`<small>${esc(meta)}</small>`:""}${x.ex?`<span class="wex">${esc(x.ex)}</span>`:""}</span>
-    <span class="wacts">${kind==="g"?`<button type="button" class="key" data-gdone="${id}"><span class="led"></span>¡Terminado!</button>`:""}${x.wp?`<a class="wlink" href="${esc(x.wp)}" target="_blank" rel="noopener noreferrer">Ficha</a>`:""}<button type="button" class="wdel ${sure?"sure":""}" data-wdel="${kind}|${id}">${sure?"¿Seguro? Toca otra vez":"Quitar"}</button></span></li>`;
+  const sure=wSure===kind+"|"+id, now=kind==="g"&&!!x.s, days=now?gDays(x):0;
+  return `<li class="wcard ${now?"now":""}" style="--wc:${now?"var(--orange)":kind==="g"?"var(--f5)":"var(--pink)"}"><span class="wimg">${img}</span>
+    ${now?`<span class="wday" role="img" aria-label="Día ${days}"><small>día</small><b>${days}</b></span>`:""}
+    <span><b>${esc(x.n)}</b>${now?`<small class="wsince">Jugando desde el ${esc(fmtDate(x.s))}</small>`:""}${meta?`<small>${esc(meta)}</small>`:""}${x.ex&&!now?`<span class="wex">${esc(x.ex)}</span>`:""}</span>
+    <span class="wacts">${kind==="g"&&!now?`<button type="button" class="key" data-gplay="${id}"><span class="led"></span>Empezamos</button>`:""}${kind==="g"?`<button type="button" class="key" data-gdone="${id}"><span class="led"></span>¡Terminado!</button>`:""}${now?`<button type="button" class="wdel" data-gstop="${id}">Aún no lo hemos empezado</button>`:""}${x.wp?`<a class="wlink" href="${esc(x.wp)}" target="_blank" rel="noopener noreferrer">Ficha</a>`:""}<button type="button" class="wdel ${sure?"sure":""}" data-wdel="${kind}|${id}">${sure?"¿Seguro? Toca otra vez":"Quitar"}</button></span></li>`;
 }
 /* --- games to play --- */
 function renderGWish(){
   if(view!=="juegos") return;
-  const l=Object.entries(G).filter(([,g])=>g.p).sort((a,b)=>a[1].at-b[1].at);
-  $("#gWish").innerHTML=l.length?l.map(([id,g])=>wishCard("g",id,g)).join(""):`<li class="wish-empty">Nada apuntado todavía. Escribid arriba el próximo juego que queráis jugar juntos.</li>`;
+  const all=Object.entries(G).filter(([,g])=>g.p), now=all.filter(([,g])=>g.s).sort((a,b)=>a[1].s<b[1].s?-1:a[1].s>b[1].s?1:a[1].at-b[1].at), l=all.filter(([,g])=>!g.s).sort((a,b)=>a[1].at-b[1].at);
+  $("#gNowSec").hidden=!now.length; $("#gNow").innerHTML=now.map(([id,g])=>wishCard("g",id,g)).join("");
+  $("#gWish").innerHTML=l.length?l.map(([id,g])=>wishCard("g",id,g)).join(""):`<li class="wish-empty">${now.length?"No hay más pendientes. Apuntad arriba el siguiente.":"Nada apuntado todavía. Escribid arriba el próximo juego que queráis jugar juntos."}</li>`;
 }
 function gFinish(id){
-  const g=G[id]; if(!g) return; delete g.p; g.d=new Date().toISOString().slice(0,10);
+  const g=G[id]; if(!g) return; delete g.p; g.d=isoDay();
   gSel=id; gSave(); renderGames("pull"); renderChrome(); gWrite(id,G[id]);
   $("#gCounter").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
 }
@@ -2109,7 +2158,7 @@ function lbxShow(){
   fetch(nURL("fotosg",pid)).then(r=>r.ok?r.json():null).then(d=>{ if(typeof d==="string"&&d.startsWith("data:image/")){ PHfull[pid]=d; if(lbx&&phList(lbx.gid)[lbx.i]?.[0]===pid){ img.src=d; img.classList.remove("lo"); } } }).catch(()=>{});
 }
 function lbxOpen(gid,i){ lbx={gid,i,from:document.activeElement}; $("#lbx").hidden=false; document.documentElement.style.overflow="hidden"; lbxShow(); setTimeout(()=>$('#lbx [data-lbx="close"]').focus(),30); }
-function lbxClose(){ if(!lbx) return; const f=lbx.from; lbx=null; $("#lbx").hidden=true; document.documentElement.style.overflow=""; f?.focus?.(); }
+function lbxClose(){ if(!lbx) return; const f=lbx.from; lbx=null; $("#lbx").hidden=true; document.documentElement.style.overflow=$("#wrapd").hidden&&$("#ruleta").hidden?"":"hidden"; f?.focus?.(); }
 document.addEventListener("click",e=>{
   const o=e.target.closest("[data-phopen]"); if(o){ const [g,i]=o.dataset.phopen.split("|"); lbxOpen(g,+i); return; }
   const b=e.target.closest("[data-lbx]"); if(!b||!lbx) return; const a=b.dataset.lbx;
@@ -2121,7 +2170,7 @@ document.addEventListener("click",e=>{
   }
 });
 $("#lbxStage").addEventListener("click",e=>{ if(e.target.id==="lbxStage") lbxClose(); });
-addEventListener("keydown",e=>{ if(!lbx) return; if(e.key==="Escape") lbxClose(); else if(e.key==="ArrowLeft"){ lbx.i--; lbxShow(); } else if(e.key==="ArrowRight"){ lbx.i++; lbxShow(); } });
+addEventListener("keydown",e=>{ if(!lbx) return; if(e.key==="Escape"){ e.stopImmediatePropagation(); lbxClose(); } else if(e.key==="ArrowLeft"){ lbx.i--; lbxShow(); } else if(e.key==="ArrowRight"){ lbx.i++; lbxShow(); } });
 { let x0=null; $("#lbxStage").addEventListener("touchstart",e=>{ x0=e.touches[0].clientX; },{passive:true});
   $("#lbxStage").addEventListener("touchend",e=>{ if(x0===null||!lbx) return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>50){ lbx.i+=dx<0?1:-1; lbxShow(); } }); }
 
@@ -2166,7 +2215,8 @@ function yearData(Y){
   const longG=top(games.filter(g=>g.h>0),g=>g.h);
   const revs=[0,1].map(w=>things.filter(x=>String(x.rv[w]||"").trim()).length);
   const firstT=[...things].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0)[0]||null;
-  return {Y,views,things,games,minM,minJ,minG,total:minM+minJ+minG,nM:views.filter(v=>v.k==="m").length,nJ:views.filter(v=>v.k==="j").length,nG:games.length,best,bestG,worst,fight,favA,favB,month,mx,longG,revs,firstT};
+  const runs=games.filter(g=>g.s&&g.d>=g.s).map(g=>({n:g.n,days:gDays(g)})), fast=top(runs,g=>-g.days), slow0=top(runs,g=>g.days), slow=slow0&&slow0!==fast&&slow0.days!==fast.days?slow0:null;
+  return {Y,views,things,games,minM,minJ,minG,total:minM+minJ+minG,nM:views.filter(v=>v.k==="m").length,nJ:views.filter(v=>v.k==="j").length,nG:games.length,best,bestG,worst,fight,favA,favB,month,mx,longG,revs,firstT,fast,slow};
 }
 function wrapYears(){
   const ys=new Set([new Date().getFullYear()]);
@@ -2189,6 +2239,7 @@ function wrapOpen(Y){
   T.push(`<article class="tk" style="--tc:var(--yellow);--tr:1deg"><p class="k">En la estantería</p>
     <div class="split" style="border:0;margin:4px 0 0;padding:0"><div><b>${s.nM}</b><span>del maratón</span></div><div><b>${s.nJ}</b><span>${s.nJ===1?"peli juntos":"pelis juntos"}</span></div><div><b>${s.nG}</b><span>${s.nG===1?"juego terminado":"juegos terminados"}</span></div></div>
     ${s.firstT?`<p>Empezasteis el año el ${fmtDate(s.firstT.d)} con <b>${esc(s.firstT.t)}</b>.</p>`:""}</article>`);
+  T.push(`<article class="tk alb" id="wrAlb" style="--tc:var(--f4);--tr:.4deg" hidden></article>`);
   if(s.best) T.push(`<article class="tk feat" style="--tc:var(--pink);--tr:-.6deg">${pic(s.best)}<p class="k">Lo mejor que habéis visto</p><p class="ttl">${esc(s.best.t)}</p><div class="who2"><i>${st(s.best.avg)}</i><span>${esc(A)} ${fmtScore(s.best.r[0])} · ${esc(B)} ${fmtScore(s.best.r[1])}</span></div></article>`);
   if(s.bestG) T.push(`<article class="tk feat" style="--tc:var(--f5);--tr:.8deg">${pic(s.bestG)}<p class="k">El mejor juego</p><p class="ttl">${esc(s.bestG.t)}</p><div class="who2"><i>${st(s.bestG.avg)}</i><span>${esc(A)} ${fmtScore(s.bestG.r[0])} · ${esc(B)} ${fmtScore(s.bestG.r[1])}</span></div></article>`);
   if(s.fight) T.push(`<article class="tk vs" style="--tc:var(--f3);--tr:-1.2deg"><p class="k">En lo que no estáis de acuerdo</p><p class="ttl">${esc(s.fight.t)}</p>
@@ -2198,6 +2249,9 @@ function wrapOpen(Y){
   if(s.worst) T.push(`<article class="tk feat" style="--tc:var(--fx);--tr:-.5deg">${pic(s.worst)}<p class="k">Lo que menos os gustó</p><p class="ttl">${esc(s.worst.t)}</p><div class="who2"><i>${st(s.worst.avg)}</i><span>${esc(A)} ${fmtScore(s.worst.r[0])} · ${esc(B)} ${fmtScore(s.worst.r[1])}</span></div></article>`);
   if(s.month>=0) T.push(`<article class="tk" style="--tc:var(--orange);--tr:1deg"><p class="k">El mes más peliculero</p><p class="big" style="font-size:clamp(38px,11vw,56px)">${MES[s.month]}</p><p>${s.mx} títulos vistos juntos ese mes.</p></article>`);
   if(s.longG) T.push(`<article class="tk" style="--tc:var(--f5);--tr:-.8deg"><p class="k">El juego más largo</p><p class="ttl">${esc(s.longG.n)}</p><p class="big">${fmtScore(s.longG.h)}<small>horas</small></p></article>`);
+  if(s.fast){ const dd=n=>`${n} ${n===1?"día":"días"}`;
+    T.push(s.slow?`<article class="tk" style="--tc:var(--orange);--tr:.7deg"><p class="k">Del primer día al final</p><p><b>El más rápido:</b> ${esc(s.fast.n)}, en ${dd(s.fast.days)}.</p><p><b>El que más os duró:</b> ${esc(s.slow.n)}, ${dd(s.slow.days)}.</p></article>`
+      :`<article class="tk" style="--tc:var(--orange);--tr:.7deg"><p class="k">Del primer día al final</p><p class="ttl">${esc(s.fast.n)}</p><p class="big">${s.fast.days}<small>${s.fast.days===1?"día":"días"}</small></p></article>`); }
   if(s.revs[0]||s.revs[1]) T.push(`<article class="tk" style="--tc:var(--yellow);--tr:.5deg"><p class="k">Reseñas escritas</p>
     <div class="split" style="grid-template-columns:1fr 1fr;border:0;margin:4px 0 0;padding:0"><div><b>${s.revs[0]}</b><span>${esc(A)}</span></div><div><b>${s.revs[1]}</b><span>${esc(B)}</span></div></div></article>`);
   const empty=!s.views.length&&!s.games.length;
@@ -2210,7 +2264,7 @@ function wrapOpen(Y){
   $$("#wrIn .tk").forEach((t,i)=>{ t.style.transitionDelay=Math.min(i,3)*90+"ms"; io.observe(t); });
   setTimeout(()=>$("#wrIn .wr-close").focus({preventScroll:true}),40);
   if(Y===wrapSeason()) try{ localStorage.setItem("ucm-wrap-seen",String(Y)); }catch(e){}
-  wrapUI();
+  wrapUI(); if(!empty) wrAlbum(Y);
 }
 function wrapClose(){ $("#wrapd").hidden=true; document.documentElement.style.overflow=""; if(/^#resumen/.test(location.hash)) history.replaceState(null,"",location.pathname+location.search); }
 // the shareable card, drawn on a canvas (text only: the covers come from other sites)
@@ -2239,13 +2293,13 @@ async function wrapCard(s){
 $("#wrapd").addEventListener("click",async e=>{
   const b=e.target.closest("[data-wr]"); if(!b) return;
   if(b.dataset.wr==="close"){ wrapClose(); return; }
-  if(b.dataset.wr==="share"&&wrapCur){
-    const m=$("#wrMsg"); m.textContent="Preparando la tarjeta…"; m.classList.remove("err");
-    try{ const blob=await wrapCard(wrapCur), file=new File([blob],`potxolos-${wrapCur.Y}.png`,{type:"image/png"});
+  if((b.dataset.wr==="share"||b.dataset.wr==="collage")&&wrapCur){
+    const col=b.dataset.wr==="collage", m=col?$("#wrAlMsg"):$("#wrMsg"); m.textContent=col?"Preparando el collage…":"Preparando la tarjeta…"; m.classList.remove("err");
+    try{ const blob=col?await wrapCollage(wrapCur):await wrapCard(wrapCur), file=new File([blob],col?`potxolos-album-${wrapCur.Y}.jpg`:`potxolos-${wrapCur.Y}.png`,{type:blob.type});
       if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:`Nuestro ${wrapCur.Y} en el videoclub`}); m.textContent=""; return; }catch(err){ if(err.name==="AbortError"){ m.textContent=""; return; } } }
       const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-      m.textContent="Tarjeta guardada en descargas.";
-    }catch(err){ m.textContent="No se ha podido crear la tarjeta."; m.classList.add("err"); }
+      m.textContent=col?"Collage guardado en descargas.":"Tarjeta guardada en descargas.";
+    }catch(err){ m.textContent=col?"No se ha podido crear el collage.":"No se ha podido crear la tarjeta."; m.classList.add("err"); }
   }
 });
 addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#wrapd").hidden) wrapClose(); });
@@ -2267,7 +2321,7 @@ const RU_COL=["var(--orange)","var(--pink)","var(--yellow)","var(--f5)","var(--f
 const ruOn=()=>RU.opts.filter(o=>o.on);
 function ruPending(kind){
   return kind==="g"
-    ? Object.entries(G).filter(([,g])=>g.p).sort((a,b)=>a[1].at-b[1].at).map(([id,g])=>({key:id,n:g.n,img:g.img||g.img2||"",meta:[g.y,g.dev].filter(Boolean).join(" · "),on:false}))
+    ? Object.entries(G).filter(([,g])=>g.p).sort((a,b)=>a[1].at-b[1].at).map(([id,g])=>({key:id,n:g.n,img:g.img||g.img2||"",meta:[g.s?`Jugando · día ${gDays(g)}`:"",g.y,g.dev].filter(Boolean).join(" · "),on:false}))
     : Object.entries(F).sort((a,b)=>a[1].at-b[1].at).map(([id,f])=>({key:id,n:f.n,img:f.img||"",meta:[f.y,f.dir,f.m?fmtMin(f.m):""].filter(Boolean).join(" · "),on:false}));
 }
 const ruColor=(on,k)=>{ if(k<0) return ""; let c=RU_COL[k%RU_COL.length]; if(k===on.length-1&&on.length>1&&on.length%RU_COL.length===1) c=RU_COL[2]; return c; };
@@ -2340,7 +2394,7 @@ function ruShowWin(){
   const w=RU.win, g=RU.kind==="g";
   const img=w.img?`<img src="${esc(w.img)}" alt="" referrerpolicy="no-referrer">`:"";
   $("#ruWin").innerHTML=`<div class="ru-card ${img?"":"noimg"}" role="status">${img?`<span class="wimg">${img}</span>`:""}<small>${g?"Esta noche jugáis a":"Esta noche toca"}</small><b>${esc(w.n)}</b>
-    <div class="btns"><button type="button" class="btn btn-main" data-ru="spin">Girar otra vez</button><button type="button" class="btn" data-ru="drop">Sin esta, otra vez</button></div></div>`;
+    <div class="btns"><button type="button" class="btn btn-main" data-ru="spin">Girar otra vez</button><button type="button" class="btn" data-ru="drop">Sin esta, otra vez</button>${g&&w.key&&G[w.key]?.p&&!G[w.key].s?`<button type="button" class="btn" data-ru="play">¡Empezamos!</button>`:""}</div></div>`;
   $("#ruWin").scrollIntoView({behavior:reduced()?"auto":"smooth",block:"nearest"});
 }
 $("#ruleta").addEventListener("click",e=>{
@@ -2348,6 +2402,7 @@ $("#ruleta").addEventListener("click",e=>{
   if(b){ const a=b.dataset.ru;
     if(a==="close") ruClose();
     else if(a==="spin") ruSpin();
+    else if(a==="play"&&RU.win?.key&&G[RU.win.key]){ gPlay(RU.win.key,true,true); b.outerHTML=`<span class="ru-ok">Apuntado en «Jugando ahora»</span>`; }
     else if(a==="drop"&&RU.win&&!RU.spinning){ RU.win.on=false; RU.win=null; $("#ruleta").classList.remove("won"); ruRender(); if(ruOn().length>=2) ruSpin(); }
     else if(a==="all"&&!RU.spinning){ RU.opts.forEach(o=>o.on=true); RU.win=null; ruRender(); }
     else if(a==="none"&&!RU.spinning){ RU.opts.forEach(o=>o.on=false); RU.win=null; ruRender(); }
@@ -2398,6 +2453,131 @@ $("#ruAdd").addEventListener("submit",e=>{ e.preventDefault(); const v=$("#ruAdd
   $("#ruAddIn").value=""; RU.win=null; ruRender(); });
 addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#ruleta").hidden) ruClose(); });
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-ruopen]"); if(b) ruOpen(b.dataset.ruopen); });
+
+/* ===================== DAYS PLAYING, PHOTO INDEX, "UN DÍA COMO HOY" ===================== */
+function isoDay(t){ const d=t===undefined?new Date():new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function dayN(iso){ return Math.round(Date.parse(iso+"T12:00:00Z")/864e5); }
+// days playing, the first day counts as day 1 (finished games: up to the day you finished)
+function gDays(g){ return g&&g.s?Math.max(1,dayN(!g.p&&g.d?g.d:isoDay())-dayN(g.s)+1):0; }
+function gPlay(id,on,quiet){
+  const g=G[id]; if(!g) return; if(on) g.s=isoDay(); else delete g.s;
+  gSave(); renderGWish(); gWrite(`${id}/s`,on?g.s:null); memoSoon();
+  if(on&&!quiet) $("#gNowSec")?.scrollIntoView({behavior:reduced()?"auto":"smooth",block:"start"});
+}
+document.addEventListener("click",e=>{
+  const p=e.target.closest("[data-gplay]"); if(p){ gPlay(p.dataset.gplay,true); return; }
+  const s=e.target.closest("[data-gstop]"); if(s){ gPlay(s.dataset.gstop,false); }
+});
+
+// Every photo's key starts with the time it was uploaded, so listing keys only (no pictures) says when each was taken.
+var phIdx=null, phIdxT=0;
+const phAt=pid=>parseInt(pid.slice(1,9),36)||0;
+async function phIndex(){
+  if(phIdx&&Date.now()-phIdxT<6e5) return phIdx;
+  const sh=async p=>{ const r=await fetch(nURL("fotos",p)+"?shallow=true"); if(!r.ok) throw r.status; return (await r.json())||{}; };
+  const gids=Object.keys(await sh("")), lists=await Promise.all(gids.map(g=>sh(g).then(Object.keys).catch(()=>[])));
+  const out=[]; gids.forEach((g,i)=>lists[i].filter(phOK).forEach(pid=>{ const at=phAt(pid); if(at) out.push({gid:g,pid,at,day:isoDay(at)}); }));
+  phIdx=out.sort((a,b)=>a.at-b.at); phIdxT=Date.now(); return phIdx;
+}
+async function phThumb(gid,pid){
+  const have=PH[gid]?.[pid]?.t; if(have) return have;
+  try{ const r=await fetch(nURL(`fotos/${gid}/${pid}`,"t")), t=r.ok?await r.json():null;
+    if(typeof t==="string"&&t.startsWith("data:image/")){ (PH[gid]||(PH[gid]={}))[pid]={...(PH[gid][pid]||{}),t,at:phAt(pid)}; return t; } }catch(e){}
+  return "";
+}
+async function phFull(pid){
+  if(PHfull[pid]) return PHfull[pid];
+  try{ const r=await fetch(nURL("fotosg",pid)), d=r.ok?await r.json():null; if(typeof d==="string"&&d.startsWith("data:image/")) return PHfull[pid]=d; }catch(e){}
+  return "";
+}
+async function phOpenPid(gid,pid){
+  if(!PHt[gid]) await phLoad(gid);
+  const i=phList(gid).findIndex(([id])=>id===pid); if(i>=0) lbxOpen(gid,i);
+}
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-phpid]"); if(b){ const [g,p]=b.dataset.phpid.split("|"); phOpenPid(g,p); } });
+const fillThumbs=root=>root.querySelectorAll("img[data-pt]").forEach(async im=>{ const [g,p]=im.dataset.pt.split("|"), t=await phThumb(g,p); if(t) im.src=t; });
+
+/* --- Un día como hoy: what you did on this same date in earlier years --- */
+var memoT=null, memoPh=null, memoJump=location.hash==="#recuerdo";
+var memoHide=(()=>{ try{ return localStorage.getItem("ucm-memo-hide")||""; }catch(e){ return ""; } })();
+function memoSoon(){ clearTimeout(memoT); memoT=setTimeout(memoRender,350); }
+function memoItems(){
+  const t=isoDay(), md=t.slice(5), Y=+t.slice(0,4), out={};
+  const add=(d,it)=>{ if(typeof d!=="string"||d.slice(5)!==md) return; const y=+d.slice(0,4); if(y>2000&&y<Y) (out[y]||(out[y]=[])).push(it); };
+  for(const d of D){ const it=S.items[d.id]; if(it&&it.st==="seen") add(it.d,{v:"Visteis",t:d.es,img:POSTER[d.id]?"posters/"+POSTER[d.id]:""}); }
+  for(const x of juntas()) (x.ds||[x.d]).forEach(d=>add(d,{v:"Visteis juntos",t:x.t,img:x.img}));
+  for(const g of Object.values(G)){ const img=g.img||g.img2||""; if(!g.p) add(g.d,{v:"Terminasteis",t:g.n,img}); add(g.s,{v:"Empezasteis",t:g.n,img}); }
+  for(const p of memoPh||[]){ if(p.day.slice(5)!==md) continue; const y=+p.day.slice(0,4); if(!(y<Y)) continue;
+    const l=out[y]||(out[y]=[]); let it=l.find(i=>i.ph&&i.g===p.gid); if(!it) l.push(it={ph:[],g:p.gid,t:G[p.gid]?.n||"un juego"}); it.ph.push(p); }
+  return out;
+}
+function memoRender(){
+  const el=$("#memo"); if(!el) return; const t=isoDay();
+  if(!FB_KEY||memoHide===t){ el.hidden=true; return; }
+  if(memoPh===null){ memoPh=[]; phIndex().then(l=>{ memoPh=l; memoSoon(); }).catch(()=>{}); }
+  const by=memoItems(), ys=Object.keys(by).map(Number).sort((a,b)=>b-a);
+  if(!ys.length){ el.hidden=true; el.dataset.sig=""; return; }
+  const Y=+t.slice(0,4), [,m,d]=t.split("-");
+  const card=i=>i.ph
+    ?`<li class="memo-it"><span class="mph">${i.ph.slice(0,3).map((p,k)=>`<button type="button" style="--r:${[-3,2,-1.5][k]}deg" data-phpid="${p.gid}|${p.pid}" aria-label="Abrir una foto de ${esc(i.t)}"><img data-pt="${p.gid}|${p.pid}" alt=""></button>`).join("")}${i.ph.length>3?`<span class="more">+${i.ph.length-3}</span>`:""}</span>
+       <span class="tx"><span>${i.ph.length===1?"Subisteis una foto de":`Subisteis ${i.ph.length} fotos de`}</span><b>${esc(i.t)}</b></span></li>`
+    :`<li class="memo-it"><span class="mi">${i.img?`<img src="${esc(i.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:""}</span><span class="tx"><span>${i.v}</span><b>${esc(i.t)}</b></span></li>`;
+  const html=`<button type="button" class="memo-x" data-memo="x" aria-label="Ocultar el recuerdo de hoy">×</button>
+    <h2 class="memo-h" id="memoH"><b>Un día como hoy</b><small>${+d} de ${MES[+m-1]}</small></h2>
+    ${ys.map(y=>`<div class="memo-yr"><small>${Y-y===1?"Hace un año":`Hace ${Y-y} años`} · ${y}</small><ul class="memo-list">${by[y].map(card).join("")}</ul></div>`).join("")}`;
+  if(el.dataset.sig!==html){ el.innerHTML=html; el.dataset.sig=html; fillThumbs(el); }
+  el.hidden=false;
+  if(memoJump){ memoJump=false; setTimeout(()=>el.scrollIntoView({behavior:reduced()?"auto":"smooth",block:"center"}),300); history.replaceState(null,"",location.pathname+location.search); }
+}
+document.addEventListener("click",e=>{ if(!e.target.closest('[data-memo="x"]')) return;
+  memoHide=isoDay(); try{ localStorage.setItem("ucm-memo-hide",memoHide); }catch(e){} $("#memo").hidden=true; });
+setInterval(memoSoon,10*6e4);
+
+/* --- the year's photos in the summary --- */
+function phPick(list,n){ // a bit of every game, spread over the year
+  const by={}; list.forEach(p=>(by[p.gid]||(by[p.gid]=[])).push(p));
+  const qs=Object.values(by).map(a=>{ const k=Math.min(a.length,n), st=a.length/k; return Array.from({length:k},(_,i)=>a[Math.floor(i*st)]); });
+  const out=[]; while(out.length<n&&qs.some(q=>q.length)) for(const q of qs) if(q.length&&out.length<n) out.push(q.shift());
+  return out.sort((a,b)=>a.at-b.at);
+}
+const POL=[-3,2,-1.5,2.5,-2,1.5,-2.5,1,3];
+async function wrAlbum(Y){
+  let l; try{ l=(await phIndex()).filter(p=>p.day.startsWith(Y+"-")); }catch(e){ return; }
+  const el=$("#wrAlb"); if(!l.length||!el||wrapCur?.Y!==Y) return;
+  const pick=phPick(l,9), th=await Promise.all(pick.map(p=>phThumb(p.gid,p.pid)));
+  const shown=pick.map((p,i)=>({...p,t:th[i]})).filter(p=>p.t);
+  if(!shown.length||!$("#wrAlb")||wrapCur?.Y!==Y) return;
+  const games=new Set(l.map(p=>p.gid)).size;
+  el.innerHTML=`<p class="k">El álbum del año</p><p class="ttl">${l.length} ${l.length===1?"foto":"fotos"} de ${games} ${games===1?"juego":"juegos"}</p>
+    <div class="collage">${shown.map((p,i)=>`<button type="button" class="pol" style="--r:${POL[i%9]}deg" data-phpid="${p.gid}|${p.pid}" aria-label="Abrir la foto de ${esc(G[p.gid]?.n||"un juego")}"><img src="${p.t}" alt=""><span>${esc(G[p.gid]?.n||"")}</span></button>`).join("")}</div>
+    <div class="btns"><button type="button" class="btn" data-wr="collage">Guardar el collage</button></div><p class="msg" id="wrAlMsg"></p>`;
+  wrapCur.alb=shown; wrapCur.albN=l.length; el.hidden=false; requestAnimationFrame(()=>el.classList.add("in"));
+}
+// the collage as one picture: polaroids on the carpet, from the full-size photos
+async function wrapCollage(s){
+  try{ await Promise.all(["400 120px Bungee","700 40px 'Barlow Condensed'"].map(f=>document.fonts.load(f))); }catch(e){}
+  const W=1080,H=1350,c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+  x.fillStyle="#203069"; x.fillRect(0,0,W,H);
+  const gr=x.createRadialGradient(W/2,0,50,W/2,0,900); gr.addColorStop(0,"rgba(255,95,162,.35)"); gr.addColorStop(1,"rgba(255,95,162,0)"); x.fillStyle=gr; x.fillRect(0,0,W,H);
+  [["#ff6b2c",0,.4],["#ff5fa2",.4,.7],["#ffd23f",.7,1]].forEach(([col,a,b])=>{ x.fillStyle=col; x.fillRect(W*a,0,W*(b-a),18); x.fillRect(W*a,H-18,W*(b-a),18); });
+  x.textAlign="center"; x.fillStyle="#f0f2ea"; x.font="400 44px Bungee"; x.fillText("CINE POTXOLOS",W/2,96);
+  x.fillStyle="#ffd23f"; x.font="400 104px Bungee"; x.fillText(`ÁLBUM ${s.Y}`,W/2,210);
+  const ps=s.alb.slice(0,9), n=ps.length, cols=n<=1?1:n<=4?2:3, rows=Math.ceil(n/cols);
+  const top=260, bot=H-110, cell=Math.min((W-100)/cols,(bot-top)/rows), gx=(W-cell*cols)/2, gy=top+((bot-top)-cell*rows)/2;
+  const imgs=await Promise.all(ps.map(async p=>{ const src=await phFull(p.pid)||p.t; return new Promise(ok=>{ const im=new Image(); im.onload=()=>ok(im); im.onerror=()=>ok(null); im.src=src; }); }));
+  ps.forEach((p,i)=>{ const im=imgs[i]; if(!im) return;
+    const fw=cell*.86, pad=fw*.05, ph=fw-pad*2, cap=fw*.14, fh=pad+ph+cap;
+    x.save(); const row=Math.floor(i/cols), inRow=Math.min(cols,n-row*cols); x.translate(gx+(cols-inRow)*cell/2+cell*(i%cols)+cell/2, gy+cell*Math.floor(i/cols)+cell/2); x.rotate(POL[i%9]*Math.PI/180);
+    x.shadowColor="rgba(0,0,0,.5)"; x.shadowBlur=26; x.shadowOffsetY=12; x.fillStyle="#fbfaf4"; x.fillRect(-fw/2,-fh/2,fw,fh);
+    x.shadowColor="transparent"; const k=Math.max(ph/im.width,ph/im.height), sw=ph/k, sh=ph/k;
+    x.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,-fw/2+pad,-fh/2+pad,ph,ph);
+    const name=G[p.gid]?.n||""; let t=name; x.font=`700 ${Math.round(cap*.56)}px 'Barlow Condensed'`;
+    while(t.length>1&&x.measureText(t).width>ph) t=t.slice(0,-1); if(t!==name) t=t.slice(0,-1).trimEnd()+"…";
+    x.fillStyle="#2a2a2e"; x.fillText(t,0,-fh/2+pad+ph+cap*.7); x.restore(); });
+  x.fillStyle="#aeb7dc"; x.font="700 40px 'Barlow Condensed'";
+  x.fillText(`${nameA()} Y ${nameB()} · ${s.albN} ${s.albN===1?"FOTO":"FOTOS"} EN ${s.Y}`.toUpperCase(),W/2,H-58);
+  return new Promise(ok=>c.toBlob(ok,"image/jpeg",.9));
+}
 
 /* ===================== BOOT ===================== */
 const saved=lsRead(); if(saved) S=sanitize(saved);
